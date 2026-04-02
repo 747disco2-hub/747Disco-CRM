@@ -19,15 +19,67 @@ if (!defined('ABSPATH')) exit;
 $is_edit_mode = false;
 $edit_data = null;
 $edit_id = 0;
+$is_clone_mode = false;
+$clone_source_id = 0;
+$clone_source_menu = '';
+
+// Priorità 0 (massima): Clone da preventivo esistente con nuovo menu
+if (!empty($_GET['clone_from'])) {
+    $clone_id = intval($_GET['clone_from']);
+    global $wpdb;
+    $table = $wpdb->prefix . 'disco747_preventivi';
+    $clone_source = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", $clone_id), ARRAY_A);
+
+    if ($clone_source) {
+        // NON è edit mode: è un NUOVO preventivo pre-compilato
+        $is_edit_mode = false;
+        $edit_id = 0;
+        $edit_data = $clone_source;
+
+        // Sovrascrivi il tipo_menu con quello scelto dall'utente
+        if (!empty($_GET['tipo_menu'])) {
+            $edit_data['tipo_menu'] = sanitize_text_field($_GET['tipo_menu']);
+        }
+
+        // Azzera i campi che NON devono essere copiati nel nuovo preventivo
+        $edit_data['id'] = 0;
+        $edit_data['preventivo_id'] = '';
+        $edit_data['acconto'] = 0;
+        $edit_data['stato'] = 'attivo';
+        $edit_data['excel_url'] = '';
+        $edit_data['pdf_url'] = '';
+        $edit_data['googledrive_url'] = '';
+        $edit_data['googledrive_file_id'] = '';
+        $edit_data['created_at'] = '';
+        $edit_data['updated_at'] = '';
+        $edit_data['note_interne'] = '';
+
+        // Mostra un banner informativo
+        $is_clone_mode = true;
+        $clone_source_id = $clone_id;
+        $clone_source_menu = $clone_source['tipo_menu'] ?? 'Menu 7';
+
+        // Normalizza campi per compatibilità (come in edit mode)
+        $edit_data['email'] = $edit_data['email'] ?? $edit_data['mail'] ?? '';
+        $edit_data['telefono'] = $edit_data['telefono'] ?? $edit_data['cellulare'] ?? '';
+        if (!isset($edit_data['importo_totale']) || $edit_data['importo_totale'] == 0) {
+            $importo_preventivo = floatval($edit_data['importo_preventivo'] ?? 0);
+            $extra_totale = floatval($edit_data['extra1_importo'] ?? 0) +
+                          floatval($edit_data['extra2_importo'] ?? 0) +
+                          floatval($edit_data['extra3_importo'] ?? 0);
+            $edit_data['importo_totale'] = $importo_preventivo - $extra_totale;
+        }
+    }
+}
 
 // Priorità 1: Variabile $preventivo passata dalla classe admin
-if (isset($preventivo) && !empty($preventivo)) {
+if (!$is_clone_mode && isset($preventivo) && !empty($preventivo)) {
     $is_edit_mode = true;
     $edit_data = is_array($preventivo) ? $preventivo : (array) $preventivo;
     $edit_id = intval($edit_data['id'] ?? 0);
 }
 // Priorità 2: Parametro GET 'id' (dalla view-preventivi)
-elseif (!empty($_GET['id'])) {
+elseif (!$is_clone_mode && !empty($_GET['id'])) {
     $is_edit_mode = true;
     $edit_id = intval($_GET['id']);
     
@@ -109,13 +161,33 @@ $sconti_menu = array(
     'Menu 7-4-7' => 600
 );
 
-$page_title = $is_edit_mode ? 'Modifica Preventivo #' . $edit_id : 'Nuovo Preventivo';
+if (!empty($is_clone_mode)) {
+    $page_title = '📋 Nuovo Preventivo (da #' . $clone_source_id . ') - ' . ($edit_data['tipo_menu'] ?? '');
+} elseif ($is_edit_mode) {
+    $page_title = 'Modifica Preventivo #' . $edit_id;
+} else {
+    $page_title = 'Nuovo Preventivo';
+}
 $submit_text = $is_edit_mode ? '💾 Aggiorna Preventivo' : '💾 Salva Preventivo';
 
 ?>
 
 <div class="wrap disco747-form-preventivo" style="max-width: 1200px; margin: 30px auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-    
+
+<?php if (!empty($is_clone_mode)): ?>
+<div style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 15px 25px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+    <span style="font-size: 2rem;">📋</span>
+    <div>
+        <strong style="font-size: 1.1rem;">Preventivo Duplicato</strong><br>
+        <span style="opacity: 0.9; font-size: 0.95rem;">
+            Stai creando un nuovo preventivo basato sul #<?php echo esc_html($clone_source_id); ?>
+            (<?php echo esc_html($clone_source_menu); ?> → <?php echo esc_html($edit_data['tipo_menu'] ?? ''); ?>).
+            Verifica i campi e salva.
+        </span>
+    </div>
+</div>
+<?php endif; ?>
+
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #2b1e1a 0%, #1a1310 100%); padding: 30px; border-radius: 15px 15px 0 0; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
@@ -128,7 +200,11 @@ $submit_text = $is_edit_mode ? '💾 Aggiorna Preventivo' : '💾 Salva Preventi
                 </p>
             </div>
             <?php if ($is_edit_mode): ?>
-            <div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <a href="#" id="btn-clone-menu-header"
+                   style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 12px 20px; border-radius: 25px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+                    📋 Crea con Altro Menu
+                </a>
                 <a href="<?php echo admin_url('admin.php?page=disco747-view-preventivi'); ?>" 
                    style="background: rgba(255,255,255,0.1); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; transition: all 0.3s ease; border: 2px solid rgba(255,255,255,0.2);"
                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
@@ -698,11 +774,66 @@ $submit_text = $is_edit_mode ? '💾 Aggiorna Preventivo' : '💾 Salva Preventi
                     </button>
                 </div>
                 
+                <!-- PULSANTE 4: Crea con Altro Menu -->
+                <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                    <h3 style="margin: 0 0 10px 0; color: #2b1e1a; font-size: 1.2rem;">Crea con Altro Menu</h3>
+                    <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 20px;">
+                        Crea un nuovo preventivo identico ma con un menu diverso
+                    </p>
+                    <button type="button" id="btn-clone-menu"
+                            style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 12px 25px; border: none; border-radius: 25px; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3); transition: all 0.3s ease; width: 100%;">
+                        📋 Crea con Altro Menu
+                    </button>
+                </div>
+                
             </div>
         </div>
         
     </div>
     
+</div>
+
+<!-- ============================================================================ -->
+<!-- MODAL: Crea con Altro Menu -->
+<!-- ============================================================================ -->
+<div id="modal-clone-menu" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        
+        <div style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 25px; border-radius: 15px 15px 0 0;">
+            <h3 style="margin: 0; font-size: 1.4rem;">📋 Crea Preventivo con Altro Menu</h3>
+        </div>
+        
+        <div style="padding: 30px;">
+            
+            <p style="color: #495057; margin: 0 0 20px 0;">
+                Tutti i dati del cliente e dell'evento saranno copiati. Scegli solo il nuovo menu:
+            </p>
+            
+            <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #2b1e1a;">
+                Seleziona il nuovo menu:
+            </label>
+            
+            <select id="clone-menu-select" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px; margin-bottom: 25px;">
+                <option value="Menu 7">Menu 7</option>
+                <option value="Menu 7-4">Menu 7-4</option>
+                <option value="Menu 7-4-7">Menu 7-4-7</option>
+            </select>
+            
+            <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                <button type="button" id="cancel-clone-menu-modal"
+                        style="background: #6c757d; color: white; padding: 12px 25px; border: none; border-radius: 25px; font-weight: 600; cursor: pointer;">
+                    Annulla
+                </button>
+                <button type="button" id="confirm-clone-menu"
+                        style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 12px 25px; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);">
+                    📋 Crea Nuovo Preventivo
+                </button>
+            </div>
+            
+        </div>
+        
+    </div>
 </div>
 
 <!-- ============================================================================ -->
@@ -1186,10 +1317,57 @@ jQuery(document).ready(function($) {
     });
     
     // Chiudi modal cliccando fuori
-    $('#modal-email-template, #modal-whatsapp-template').on('click', function(e) {
+    $('#modal-email-template, #modal-whatsapp-template, #modal-clone-menu').on('click', function(e) {
         if ($(e.target).is(this)) {
             $(this).fadeOut(300);
         }
+    });
+    
+    // ========================================================================
+    // PULSANTE 4: Crea con Altro Menu
+    // ========================================================================
+    function openCloneMenuModal() {
+        if (!window.preventivoData || (!window.preventivoData.id && !window.preventivoData.db_id)) {
+            alert('❌ Errore: Dati preventivo non disponibili. Salva prima il preventivo.');
+            return;
+        }
+        // Pre-seleziona il menu corrente
+        var currentMenu = window.preventivoData.tipo_menu || 'Menu 7';
+        $('#clone-menu-select').val(currentMenu);
+        $('#modal-clone-menu').css('display', 'flex').hide().fadeIn(300);
+    }
+
+    $('#btn-clone-menu').on('click', function() {
+        openCloneMenuModal();
+    });
+
+    $('#btn-clone-menu-header').on('click', function(e) {
+        e.preventDefault();
+        openCloneMenuModal();
+    });
+
+    // Chiudi modal clone menu
+    $('#cancel-clone-menu-modal').on('click', function() {
+        $('#modal-clone-menu').fadeOut(300);
+    });
+
+    // Conferma creazione preventivo clone
+    $('#confirm-clone-menu').on('click', function() {
+        var selectedMenu = $('#clone-menu-select').val();
+        var prevId = window.preventivoData.id || window.preventivoData.db_id;
+
+        if (!prevId || prevId <= 0) {
+            alert('❌ Errore: ID preventivo non trovato o non valido');
+            return;
+        }
+
+        var redirectUrl = '<?php echo esc_js(admin_url('admin.php')); ?>'
+            + '?page=disco747-crm'
+            + '&action=new_preventivo'
+            + '&clone_from=' + encodeURIComponent(prevId)
+            + '&tipo_menu=' + encodeURIComponent(selectedMenu);
+
+        window.location.href = redirectUrl;
     });
     
     // ============================================================================
