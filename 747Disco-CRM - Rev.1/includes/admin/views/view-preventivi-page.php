@@ -20,6 +20,7 @@ $filters = array(
     'search' => sanitize_text_field($_GET['search'] ?? ''),
     'stato' => sanitize_key($_GET['stato'] ?? ''),
     'menu' => sanitize_text_field($_GET['menu'] ?? ''),
+    'data_esatta' => sanitize_text_field($_GET['data_esatta'] ?? ''),
     'anno' => intval($_GET['anno'] ?? 0),
     'mese' => intval($_GET['mese'] ?? 0),
     'order_by' => sanitize_key($_GET['order_by'] ?? 'data_evento'),
@@ -79,6 +80,12 @@ if (!empty($filters['menu'])) {
     $where_values[] = '%' . $wpdb->esc_like($filters['menu']) . '%';
 }
 
+// Filtro DATA ESATTA
+if (!empty($filters['data_esatta'])) {
+    $where[] = "data_evento = %s";
+    $where_values[] = $filters['data_esatta'];
+}
+
 // Filtro ANNO
 if ($filters['anno'] > 0) {
     $where[] = "YEAR(data_evento) = %d";
@@ -108,6 +115,11 @@ $order_clause = sprintf('ORDER BY %s %s',
     $filters['order'] === 'ASC' ? 'ASC' : 'DESC'
 );
 
+// Se filtro data esatta attivo, ordina per menu per vedere facilmente le varianti
+if (!empty($filters['data_esatta'])) {
+    $order_clause = "ORDER BY tipo_menu ASC";
+}
+
 if (!empty($where_values)) {
     $query = $wpdb->prepare(
         "SELECT * FROM {$table_name} WHERE {$where_clause} {$order_clause} LIMIT %d OFFSET %d",
@@ -122,6 +134,37 @@ if (!empty($where_values)) {
 }
 
 $preventivi = $wpdb->get_results($query);
+
+// Trova date con più preventivi (per badge visivo)
+$date_con_duplicati = array();
+$duplicati_raw = $wpdb->get_results(
+    "SELECT data_evento, COUNT(*) as conteggio, GROUP_CONCAT(id ORDER BY id ASC) as ids
+     FROM {$table_name}
+     WHERE stato != 'annullato'
+     GROUP BY data_evento
+     HAVING COUNT(*) > 1",
+    ARRAY_A
+);
+foreach ($duplicati_raw as $dup) {
+    $date_con_duplicati[$dup['data_evento']] = array(
+        'conteggio' => intval($dup['conteggio']),
+        'ids' => explode(',', $dup['ids'])
+    );
+}
+
+// Trova email con più preventivi
+$email_con_duplicati = array();
+$email_raw = $wpdb->get_results(
+    "SELECT email, COUNT(*) as conteggio
+     FROM {$table_name}
+     WHERE email != '' AND stato != 'annullato'
+     GROUP BY email
+     HAVING COUNT(*) > 1",
+    ARRAY_A
+);
+foreach ($email_raw as $row) {
+    $email_con_duplicati[$row['email']] = intval($row['conteggio']);
+}
 
 // Statistiche
 $stats = array(
@@ -226,6 +269,17 @@ $stats = array(
                         </select>
                     </div>
 
+                    <!-- Data Esatta -->
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">📅 Data Esatta</label>
+                        <input type="date" name="data_esatta"
+                               value="<?php echo esc_attr($filters['data_esatta'] ?? ''); ?>"
+                               style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 4px;">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            💡 Tutti i preventivi di un giorno specifico
+                        </small>
+                    </div>
+
                     <!-- Anno -->
                     <div>
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">📅 Anno</label>
@@ -287,6 +341,26 @@ $stats = array(
 
     <!-- Tabella Preventivi -->
     <div class="disco747-card">
+        <?php if (!empty($filters['data_esatta'])): ?>
+        <div style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-radius: 8px 8px 0 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.5rem;">📅</span>
+                <div>
+                    <strong style="font-size: 1.1rem;">
+                        Preventivi del <?php echo esc_html(date('d/m/Y', strtotime($filters['data_esatta']))); ?>
+                    </strong>
+                    <br>
+                    <span style="opacity: 0.9; font-size: 0.9rem;">
+                        <?php echo number_format($total_preventivi); ?> preventivo/i trovato/i per questa data
+                    </span>
+                </div>
+            </div>
+            <a href="<?php echo admin_url('admin.php?page=disco747-view-preventivi'); ?>"
+               style="background: rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600;">
+                ✖ Rimuovi filtro data
+            </a>
+        </div>
+        <?php endif; ?>
         <div class="disco747-card-header">
             📋 Preventivi (<?php echo number_format($total_preventivi); ?> risultati)
             <?php if (!empty($filters['search'])): ?>
@@ -339,9 +413,23 @@ $stats = array(
                         </thead>
                         <tbody>
                             <?php foreach ($preventivi as $prev): ?>
-                                <tr data-preventivo-id="<?php echo $prev->id; ?>">
+                                <?php
+                                $data_evento_raw = $prev->data_evento ?? '';
+                                $ha_duplicati = !empty($data_evento_raw) && isset($date_con_duplicati[$data_evento_raw]);
+                                $num_duplicati = $ha_duplicati ? $date_con_duplicati[$data_evento_raw]['conteggio'] : 0;
+                                ?>
+                                <tr data-preventivo-id="<?php echo $prev->id; ?>"
+                                    style="<?php echo $ha_duplicati ? 'border-left: 4px solid #f0ad4e;' : ''; ?>">
                                     <td style="font-weight: 500;">
                                         <?php echo $prev->data_evento ? date('d/m/Y', strtotime($prev->data_evento)) : 'N/A'; ?>
+                                        <?php if ($ha_duplicati): ?>
+                                            <br>
+                                            <a href="<?php echo admin_url('admin.php?page=disco747-view-preventivi&data_esatta=' . esc_attr($data_evento_raw)); ?>"
+                                               style="display: inline-block; margin-top: 4px; background: #f0ad4e; color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-decoration: none; white-space: nowrap;"
+                                               title="Clicca per vedere tutti i preventivi di questa data">
+                                                📋 <?php echo $num_duplicati; ?> preventivi
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <strong style="color: #0073aa;">
@@ -349,6 +437,14 @@ $stats = array(
                                         </strong>
                                         <?php if ($prev->email): ?>
                                             <br><small style="color: #666;">✉️ <?php echo esc_html($prev->email); ?></small>
+                                        <?php endif; ?>
+                                        <?php if (!empty($prev->email) && isset($email_con_duplicati[$prev->email])): ?>
+                                            <br>
+                                            <a href="<?php echo admin_url('admin.php?page=disco747-view-preventivi&search=' . urlencode($prev->email)); ?>"
+                                               style="display: inline-block; margin-top: 3px; background: #17a2b8; color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-decoration: none;"
+                                               title="Questo cliente ha più preventivi">
+                                                👤 <?php echo $email_con_duplicati[$prev->email]; ?>x cliente
+                                            </a>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -408,6 +504,12 @@ $stats = array(
                                                class="button button-small"
                                                title="Modifica preventivo">
                                                 ✏️ Modifica
+                                            </a>
+                                            <a href="<?php echo admin_url('admin.php?page=disco747-crm&action=new_preventivo&clone_from=' . $prev->id); ?>"
+                                               class="button button-small"
+                                               title="Crea preventivo con altro menu (stesso cliente e data)"
+                                               style="background: #17a2b8; color: white; border-color: #138496;">
+                                                📋 Altro Menu
                                             </a>
                                             <?php if ($prev->googledrive_file_id): ?>
                                                 <a href="https://drive.google.com/file/d/<?php echo esc_attr($prev->googledrive_file_id); ?>/view" 
