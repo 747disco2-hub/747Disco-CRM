@@ -1,0 +1,947 @@
+/**
+ * CSS Frontend 747 Disco CRM
+ * Design completo con palette colori: Nero (#2b1e1a), Oro (#c28a4d), Grigio (#90858a, #eeeae6)
+ * Mobile-first, ottimizzato per iPhone e dispositivi touch
+ */
+
+/* ============================================================================
+   RESET E BASE STYLES
+   ============================================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2b1e1a 0%, #90858a 50%, #eeeae6 100%);
+    min-height: 100vh;
+    color: #2b1e1a;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Nasconde contenuto WordPress non necessario nelle nostre pagine */
+.disco747-page .site-header,
+.disco747-page .site-footer,
+.disco747-page .entry-header,
+.disco747-page .entry-footer {
+    display: none !important;
+}
+
+.disco747-page .entry-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ============================================================================
+   LAYOUT CONTAINERS
+   ============================================================================ */
+
+.disco747-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.disco747-card {
+    background: #eeeae6;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(43, 30, 26, 0.15);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.disco747-card-header {
+    background: linear-gradient(135deg, #c28a4d 0%, #b8b1b3 100%);
+    color: #2b1e1a;
+    padding: 20px;
+    font-weight: 600;
+}
+
+.disco747-card-body {
+    padding: 20px;
+    background: white;
+}
+
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+    color: #2b1e1a;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(43, 30, 26, 0.3);
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+p {
+    margin-bottom: 1rem;
+    color: #2b1e1a;
+}
+
+a {
+    color: #c28a4d;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #2b1e1a;
+    text-decoration: underline;
+}
+
+/* ============================================================================
+   BUTTONS - STILE 747 DISCO
+   ============================================================================ */
+
+.disco747-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(43, 30, 26, 0.3);
+    text-align: center;
+    justify-content: center;
+}
+
+.disco747-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(43, 30, 26, 0.4);
+    text-decoration: none;
+}
+
+.disco747-btn:active {
+    transform: translateY(0);
+}
+
+.disco747-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Varianti bottoni */
+.disco747-btn-primary {
+    background: linear-gradient(135deg, #c28a4d 0%, #90858a 100%);
+    color: white;
+}
+
+.disco747-btn-primary:hover {
+    color: white;
+}
+
+.disco747-btn-secondary {
+    background: linear-gradient(135deg, #90858a 0%, #b8b1b3 100%);
+    color: white;
+}
+
+.disco747-btn-secondary:hover {
+    color: white;
+}
+
+.disco747-btn-outline {
+    background: transparent;
+    color: #2b1e1a;
+    border: 2px solid #c28a4d;
+}
+
+.disco747-btn-outline:hover {
+    background: #c28a4d;
+    color: white;
+}
+
+.disco747-btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.disco747-btn-danger:hover {
+    color: white;
+}
+
+.disco747-btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.disco747-btn-success:hover {
+    color: white;
+}
+
+/* Bottoni small */
+.disco747-btn-sm {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    border-radius: 20px;
+}
+
+/* Bottoni large */
+.disco747-btn-lg {
+    padding: 16px 32px;
+    font-size: 1.125rem;
+    border-radius: 30px;
+}
+
+/* ============================================================================
+   FORMS - STILE 747 DISCO
+   ============================================================================ */
+
+.disco747-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.disco747-form-group label {
+    display: block;
+    color: #2b1e1a;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.disco747-form-group label.required::after {
+    content: ' *';
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.disco747-form-control {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #b8b1b3;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: #2b1e1a;
+}
+
+.disco747-form-control:focus {
+    outline: none;
+    border-color: #c28a4d;
+    box-shadow: 0 0 0 3px rgba(194, 138, 77, 0.1);
+    transform: translateY(-2px);
+}
+
+.disco747-form-control::placeholder {
+    color: #90858a;
+    opacity: 1;
+}
+
+/* Select personalizzato */
+.disco747-form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23c28a4d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px 12px;
+    padding-right: 40px;
+}
+
+/* Checkbox e radio personalizzati */
+.disco747-checkbox,
+.disco747-radio {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.disco747-checkbox input[type="checkbox"],
+.disco747-radio input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #c28a4d;
+    cursor: pointer;
+}
+
+.disco747-checkbox label,
+.disco747-radio label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+/* Form grid */
+.disco747-form-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.disco747-form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.disco747-form-grid-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.disco747-form-grid-4 {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+/* ============================================================================
+   NOTIFICATIONS E MESSAGGI
+   ============================================================================ */
+
+.disco747-notification {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.disco747-notification.success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border-left: 5px solid #28a745;
+}
+
+.disco747-notification.error {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border-left: 5px solid #dc3545;
+}
+
+.disco747-notification.warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+    border-left: 5px solid #ffc107;
+}
+
+.disco747-notification.info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+    border-left: 5px solid #17a2b8;
+}
+
+/* ============================================================================
+   TABLES - RESPONSIVE E MOBILE-FIRST
+   ============================================================================ */
+
+.disco747-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(43, 30, 26, 0.1);
+}
+
+.disco747-table {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.9rem;
+}
+
+.disco747-table th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #2b1e1a;
+    padding: 12px 10px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #c28a4d;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.disco747-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #e9ecef;
+    color: #2b1e1a;
+    vertical-align: middle;
+}
+
+.disco747-table tr:hover {
+    background: linear-gradient(135deg, #f8f9fa 0%, #fff9f5 100%);
+}
+
+.disco747-table tr:nth-child(even) {
+    background: rgba(238, 234, 230, 0.3);
+}
+
+/* Status badges nelle tabelle */
+.disco747-status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+}
+
+.disco747-status-badge.attivo {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.disco747-status-badge.confermato {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+}
+
+.disco747-status-badge.annullato {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+.disco747-status-badge.rifiutato {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+/* Contatore progressivo */
+.disco747-counter-badge {
+    background: linear-gradient(135deg, #c28a4d 0%, #90858a 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: inline-block;
+    min-width: 30px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(43, 30, 26, 0.3);
+}
+
+/* ============================================================================
+   LOADING E STATI VUOTI
+   ============================================================================ */
+
+.disco747-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #90858a;
+    text-align: center;
+}
+
+.disco747-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #c28a4d;
+    border-radius: 50%;
+    animation: disco747-spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes disco747-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.disco747-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #90858a;
+    text-align: center;
+}
+
+.disco747-empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.disco747-empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #2b1e1a;
+}
+
+.disco747-empty-text {
+    margin-bottom: 20px;
+    color: #90858a;
+}
+
+/* ============================================================================
+   FILTERS E RICERCA
+   ============================================================================ */
+
+.disco747-filters {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #dee2e6;
+}
+
+.disco747-filters-title {
+    color: #2b1e1a;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.disco747-filters-grid {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.disco747-filters-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+/* ============================================================================
+   STATS CARDS - DASHBOARD
+   ============================================================================ */
+
+.disco747-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.disco747-stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(43, 30, 26, 0.1);
+    border-left: 5px solid #c28a4d;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.disco747-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #c28a4d 0%, #90858a 100%);
+}
+
+.disco747-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(43, 30, 26, 0.15);
+}
+
+.disco747-stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #c28a4d;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 2px rgba(43, 30, 26, 0.1);
+}
+
+.disco747-stat-label {
+    font-size: 0.9rem;
+    color: #2b1e1a;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Varianti stat cards */
+.disco747-stat-card.pending .disco747-stat-number {
+    color: #f39c12;
+}
+
+.disco747-stat-card.confirmed .disco747-stat-number {
+    color: #27ae60;
+}
+
+.disco747-stat-card.revenue .disco747-stat-number {
+    color: #c28a4d;
+    font-size: 2rem;
+}
+
+.disco747-stat-card.total .disco747-stat-number {
+    color: #6c757d;
+}
+
+/* ============================================================================
+   LOGO E BRANDING
+   ============================================================================ */
+
+.disco747-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: white;
+    padding: 8px;
+    box-shadow: 0 6px 15px rgba(43, 30, 26, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.disco747-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.disco747-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.disco747-brand-text h1 {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2b1e1a;
+    text-shadow: 2px 2px 4px rgba(43, 30, 26, 0.3);
+}
+
+.disco747-brand-text p {
+    margin: 5px 0 0 0;
+    font-size: 1rem;
+    color: #90858a;
+    font-weight: 300;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ============================================================================ */
+
+/* Small devices (phones, 576px and up) */
+@media (max-width: 575.98px) {
+    .disco747-container {
+        padding: 5px;
+    }
+    
+    .disco747-form-grid-2,
+    .disco747-form-grid-3,
+    .disco747-form-grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    .disco747-filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .disco747-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .disco747-stat-number {
+        font-size: 2rem;
+    }
+    
+    .disco747-table {
+        font-size: 0.8rem;
+        min-width: 700px;
+    }
+    
+    .disco747-table th,
+    .disco747-table td {
+        padding: 8px 6px;
+    }
+    
+    .disco747-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .disco747-card-header,
+    .disco747-card-body {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 576px) {
+    .disco747-container {
+        padding: 15px;
+    }
+    
+    .disco747-filters-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .disco747-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    
+    .disco747-form-grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .disco747-table {
+        font-size: 0.9rem;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 768px) {
+    .disco747-container {
+        padding: 20px;
+    }
+    
+    .disco747-filters-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .disco747-form-grid-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    
+    .disco747-form-grid-4 {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+    
+    .disco747-table {
+        min-width: auto;
+        font-size: 1rem;
+    }
+    
+    .disco747-card-header,
+    .disco747-card-body {
+        padding: 25px;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 992px) {
+    .disco747-stats-grid {
+        gap: 25px;
+    }
+    
+    .disco747-stat-card {
+        padding: 25px;
+    }
+    
+    .disco747-stat-number {
+        font-size: 3rem;
+    }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Spacing */
+.disco747-mt-0 { margin-top: 0 !important; }
+.disco747-mt-1 { margin-top: 0.25rem !important; }
+.disco747-mt-2 { margin-top: 0.5rem !important; }
+.disco747-mt-3 { margin-top: 1rem !important; }
+.disco747-mt-4 { margin-top: 1.5rem !important; }
+.disco747-mt-5 { margin-top: 3rem !important; }
+
+.disco747-mb-0 { margin-bottom: 0 !important; }
+.disco747-mb-1 { margin-bottom: 0.25rem !important; }
+.disco747-mb-2 { margin-bottom: 0.5rem !important; }
+.disco747-mb-3 { margin-bottom: 1rem !important; }
+.disco747-mb-4 { margin-bottom: 1.5rem !important; }
+.disco747-mb-5 { margin-bottom: 3rem !important; }
+
+.disco747-p-0 { padding: 0 !important; }
+.disco747-p-1 { padding: 0.25rem !important; }
+.disco747-p-2 { padding: 0.5rem !important; }
+.disco747-p-3 { padding: 1rem !important; }
+.disco747-p-4 { padding: 1.5rem !important; }
+.disco747-p-5 { padding: 3rem !important; }
+
+/* Text alignment */
+.disco747-text-left { text-align: left !important; }
+.disco747-text-center { text-align: center !important; }
+.disco747-text-right { text-align: right !important; }
+
+/* Text colors */
+.disco747-text-primary { color: #c28a4d !important; }
+.disco747-text-secondary { color: #90858a !important; }
+.disco747-text-dark { color: #2b1e1a !important; }
+.disco747-text-light { color: #eeeae6 !important; }
+.disco747-text-success { color: #28a745 !important; }
+.disco747-text-danger { color: #dc3545 !important; }
+.disco747-text-warning { color: #ffc107 !important; }
+.disco747-text-info { color: #17a2b8 !important; }
+
+/* Background colors */
+.disco747-bg-primary { background-color: #c28a4d !important; }
+.disco747-bg-secondary { background-color: #90858a !important; }
+.disco747-bg-dark { background-color: #2b1e1a !important; }
+.disco747-bg-light { background-color: #eeeae6 !important; }
+.disco747-bg-white { background-color: white !important; }
+
+/* Display */
+.disco747-d-none { display: none !important; }
+.disco747-d-block { display: block !important; }
+.disco747-d-inline { display: inline !important; }
+.disco747-d-inline-block { display: inline-block !important; }
+.disco747-d-flex { display: flex !important; }
+.disco747-d-grid { display: grid !important; }
+
+/* Flex utilities */
+.disco747-flex-row { flex-direction: row !important; }
+.disco747-flex-column { flex-direction: column !important; }
+.disco747-justify-start { justify-content: flex-start !important; }
+.disco747-justify-center { justify-content: center !important; }
+.disco747-justify-end { justify-content: flex-end !important; }
+.disco747-justify-between { justify-content: space-between !important; }
+.disco747-align-start { align-items: flex-start !important; }
+.disco747-align-center { align-items: center !important; }
+.disco747-align-end { align-items: flex-end !important; }
+
+/* Border radius */
+.disco747-rounded { border-radius: 0.5rem !important; }
+.disco747-rounded-lg { border-radius: 1rem !important; }
+.disco747-rounded-xl { border-radius: 1.5rem !important; }
+.disco747-rounded-full { border-radius: 50% !important; }
+
+/* Shadow */
+.disco747-shadow-sm { box-shadow: 0 2px 4px rgba(43, 30, 26, 0.1) !important; }
+.disco747-shadow { box-shadow: 0 4px 8px rgba(43, 30, 26, 0.15) !important; }
+.disco747-shadow-lg { box-shadow: 0 8px 20px rgba(43, 30, 26, 0.2) !important; }
+
+/* Font weight */
+.disco747-fw-light { font-weight: 300 !important; }
+.disco747-fw-normal { font-weight: 400 !important; }
+.disco747-fw-medium { font-weight: 500 !important; }
+.disco747-fw-semibold { font-weight: 600 !important; }
+.disco747-fw-bold { font-weight: 700 !important; }
+
+/* ============================================================================
+   ANIMATIONS E TRANSIZIONI
+   ============================================================================ */
+
+.disco747-fade-in {
+    animation: disco747-fadeIn 0.5s ease-in-out;
+}
+
+.disco747-slide-in-up {
+    animation: disco747-slideInUp 0.5s ease-out;
+}
+
+.disco747-scale-in {
+    animation: disco747-scaleIn 0.3s ease-out;
+}
+
+@keyframes disco747-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes disco747-slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes disco747-scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Hover effects */
+.disco747-hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.disco747-hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(43, 30, 26, 0.2);
+}
+
+/* Focus visible per accessibilità */
+.disco747-btn:focus-visible,
+.disco747-form-control:focus-visible {
+    outline: 2px solid #c28a4d;
+    outline-offset: 2px;
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+    .disco747-btn,
+    .disco747-filters,
+    .disco747-notification {
+        display: none !important;
+    }
+    
+    .disco747-card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    
+    .disco747-table {
+        font-size: 0.8rem !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
