@@ -927,13 +927,23 @@ class Disco747_Forms {
             '{{nome_completo}}' => trim(($data['nome_referente'] ?? '') . ' ' . ($data['cognome_referente'] ?? '')),
             '{{email}}' => $data['email'] ?? '',
             '{{telefono}}' => $data['telefono'] ?? '',
-            '{{data_evento}}' => date('d/m/Y', strtotime($data['data_evento'] ?? '')),
+            '{{data_evento}}' => !empty($data['data_evento']) ? date('d/m/Y', strtotime($data['data_evento'])) : '',
             '{{tipo_evento}}' => $data['tipo_evento'] ?? '',
+            '{{orario_inizio}}' => $data['orario_inizio'] ?? '',
+            '{{orario_fine}}' => $data['orario_fine'] ?? '',
+            '{{tipo_menu}}' => $data['tipo_menu'] ?? '',
             '{{menu}}' => $data['tipo_menu'] ?? '',
             '{{numero_invitati}}' => $data['numero_invitati'] ?? '',
-            '{{importo}}' => number_format($data['importo_totale'] ?? 0, 2, ',', '.') . ' ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬',
-            '{{acconto}}' => number_format($data['acconto'] ?? 0, 2, ',', '.') . ' ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬',
-            '{{preventivo_id}}' => $data['preventivo_id'] ?? ''
+            '{{importo}}' => '€ ' . number_format($data['importo_totale'] ?? 0, 2, ',', '.'),
+            '{{acconto}}' => '€ ' . number_format($data['acconto'] ?? 0, 2, ',', '.'),
+            '{{saldo}}' => '€ ' . number_format($data['saldo'] ?? 0, 2, ',', '.'),
+            '{{preventivo_id}}' => $data['preventivo_id'] ?? '',
+            '{{omaggio1}}' => $data['omaggio1'] ?? '',
+            '{{omaggio2}}' => $data['omaggio2'] ?? '',
+            '{{omaggio3}}' => $data['omaggio3'] ?? '',
+            '{{extra1}}' => $data['extra1'] ?? '',
+            '{{extra2}}' => $data['extra2'] ?? '',
+            '{{extra3}}' => $data['extra3'] ?? '',
         );
         
         return str_replace(array_keys($replacements), array_values($replacements), $text);
