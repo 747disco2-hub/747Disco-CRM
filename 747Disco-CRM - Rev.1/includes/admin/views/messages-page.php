@@ -87,49 +87,155 @@ for ($i = 1; $i <= 3; $i++) {
         </div>
         <div class="disco747-card-content">
             <p>Configura i template per email e WhatsApp che potrai inviare dopo la creazione del preventivo.</p>
-            
+
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 15px;">
                 <strong style="font-size: 16px;">📖 Campi dinamici disponibili (Placeholder)</strong>
                 <p style="margin: 10px 0; color: #666; font-size: 14px;">Clicca su un placeholder per copiarlo negli appunti</p>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
-                    
+
+                <!-- Legenda canali -->
+                <div style="display: flex; align-items: center; gap: 20px; margin: 15px 0 20px; padding: 12px 16px; background: #fff; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <strong style="font-size: 13px; color: #555;">Dove funziona:</strong>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
+                        <span style="background:#d1ecf1; color:#0c5460; border-radius:4px; padding:2px 8px; font-weight:700; font-size:12px;">📧 Email</span>
+                        = disponibile nelle email
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
+                        <span style="background:#d4edda; color:#155724; border-radius:4px; padding:2px 8px; font-weight:700; font-size:12px;">📱 WhatsApp</span>
+                        = disponibile nei messaggi WhatsApp
+                    </span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+
                     <!-- Cliente -->
                     <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
-                        <strong style="display: block; margin-bottom: 10px; color: #007bff;">👤 Cliente</strong>
-                        <code class="copyable-placeholder">{{nome}}</code>
-                        <code class="copyable-placeholder">{{cognome}}</code>
-                        <code class="copyable-placeholder">{{nome_completo}}</code>
-                        <code class="copyable-placeholder">{{email}}</code>
-                        <code class="copyable-placeholder">{{telefono}}</code>
+                        <strong style="display: block; margin-bottom: 12px; color: #007bff;">👤 Cliente</strong>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{nome}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{cognome}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{nome_completo}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{email}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{telefono}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
                     </div>
-                    
+
                     <!-- Evento -->
                     <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <strong style="display: block; margin-bottom: 10px; color: #28a745;">🎉 Evento</strong>
-                        <code class="copyable-placeholder">{{data_evento}}</code>
-                        <code class="copyable-placeholder">{{tipo_evento}}</code>
-                        <code class="copyable-placeholder">{{numero_invitati}}</code>
-                        <code class="copyable-placeholder">{{orario_inizio}}</code>
-                        <code class="copyable-placeholder">{{orario_fine}}</code>
+                        <strong style="display: block; margin-bottom: 12px; color: #28a745;">🎉 Evento</strong>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{data_evento}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{tipo_evento}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{numero_invitati}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{orario_inizio}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{orario_fine}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
                     </div>
-                    
-                    <!-- Menu -->
+
+                    <!-- Importi -->
                     <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
-                        <strong style="display: block; margin-bottom: 10px; color: #f39c12;">🍽️ Menu</strong>
-                        <code class="copyable-placeholder">{{tipo_menu}}</code>
-                        <code class="copyable-placeholder">{{importo}}</code>
-                        <code class="copyable-placeholder">{{acconto}}</code>
-                        <code class="copyable-placeholder">{{saldo}}</code>
+                        <strong style="display: block; margin-bottom: 12px; color: #f39c12;">🍽️ Menu &amp; Importi</strong>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{tipo_menu}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{importo}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{acconto}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{saldo}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
                     </div>
-                    
-                    <!-- Extra -->
+
+                    <!-- Extra / Omaggi -->
                     <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #6f42c1;">
-                        <strong style="display: block; margin-bottom: 10px; color: #6f42c1;">✨ Altro</strong>
-                        <code class="copyable-placeholder">{{preventivo_id}}</code>
-                        <code class="copyable-placeholder">{{omaggio1}}</code>
-                        <code class="copyable-placeholder">{{extra1}}</code>
+                        <strong style="display: block; margin-bottom: 12px; color: #6f42c1;">✨ Extra &amp; Omaggi</strong>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{preventivo_id}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{omaggio1}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{omaggio2}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{omaggio3}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{extra1}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{extra2}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{extra3}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span><span class="badge-wa">📱 WhatsApp</span></span>
+                        </div>
                     </div>
+
+                    <!-- Solo Email -->
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                        <strong style="display: block; margin-bottom: 12px; color: #17a2b8;">📧 Solo Email</strong>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{totale}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{importo_preventivo}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{extra1_importo_formatted}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{extra2_importo_formatted}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span></span>
+                        </div>
+                        <div class="ph-row">
+                            <code class="copyable-placeholder">{{extra3_importo_formatted}}</code>
+                            <span class="ph-badges"><span class="badge-email">📧 Email</span></span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -686,5 +792,40 @@ function resetFormWhatsAppTemplate(templateId) {
 .disco747-form-actions {
     text-align: center;
     margin-top: 30px;
+}
+
+/* Placeholder UI */
+.ph-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.ph-badges {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+.badge-email {
+    display: inline-block;
+    background: #d1ecf1;
+    color: #0c5460;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.badge-wa {
+    display: inline-block;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
 }
 </style>
