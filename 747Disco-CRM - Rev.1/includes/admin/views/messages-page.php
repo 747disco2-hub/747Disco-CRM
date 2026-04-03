@@ -117,9 +117,10 @@ for ($i = 1; $i <= 3; $i++) {
                     <!-- Menu -->
                     <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
                         <strong style="display: block; margin-bottom: 10px; color: #f39c12;">🍽️ Menu</strong>
-                        <code class="copyable-placeholder">{{menu}}</code>
+                        <code class="copyable-placeholder">{{tipo_menu}}</code>
                         <code class="copyable-placeholder">{{importo}}</code>
                         <code class="copyable-placeholder">{{acconto}}</code>
+                        <code class="copyable-placeholder">{{saldo}}</code>
                     </div>
                     
                     <!-- Extra -->
@@ -392,9 +393,12 @@ function testEmail(templateId) {
         .replace(/{{telefono}}/g, '+39 123 456 7890')
         .replace(/{{tipo_evento}}/g, 'Compleanno 18 anni')
         .replace(/{{data_evento}}/g, '15/12/2024')
-        .replace(/{{menu}}/g, 'Menu 747')
+        .replace(/{{orario_inizio}}/g, '20:30')
+        .replace(/{{orario_fine}}/g, '01:30')
+        .replace(/{{tipo_menu}}/g, 'Menu 747')
         .replace(/{{importo}}/g, '€ 1.500,00')
         .replace(/{{acconto}}/g, '€ 500,00')
+        .replace(/{{saldo}}/g, '€ 1.000,00')
         .replace(/{{numero_invitati}}/g, '50')
         .replace(/{{preventivo_id}}/g, '123')
         .replace(/{{omaggio1}}/g, 'Cocktail di benvenuto')
@@ -408,9 +412,12 @@ function testEmail(templateId) {
         .replace(/{{telefono}}/g, '+39 123 456 7890')
         .replace(/{{tipo_evento}}/g, 'Compleanno 18 anni')
         .replace(/{{data_evento}}/g, '15/12/2024')
-        .replace(/{{menu}}/g, 'Menu 747')
+        .replace(/{{orario_inizio}}/g, '20:30')
+        .replace(/{{orario_fine}}/g, '01:30')
+        .replace(/{{tipo_menu}}/g, 'Menu 747')
         .replace(/{{importo}}/g, '€ 1.500,00')
         .replace(/{{acconto}}/g, '€ 500,00')
+        .replace(/{{saldo}}/g, '€ 1.000,00')
         .replace(/{{numero_invitati}}/g, '50')
         .replace(/{{preventivo_id}}/g, '123')
         .replace(/{{omaggio1}}/g, 'Cocktail di benvenuto')
@@ -539,11 +546,15 @@ function testFormWhatsApp(templateId) {
         .replace(/{{nome_completo}}/g, 'Mario Rossi')
         .replace(/{{tipo_evento}}/g, 'Compleanno 18 anni')
         .replace(/{{data_evento}}/g, '15/12/2024')
-        .replace(/{{menu}}/g, 'Menu 747')
+        .replace(/{{orario_inizio}}/g, '20:30')
+        .replace(/{{orario_fine}}/g, '01:30')
+        .replace(/{{tipo_menu}}/g, 'Menu 747')
         .replace(/{{importo}}/g, '€ 1.500,00')
         .replace(/{{acconto}}/g, '€ 500,00')
         .replace(/{{numero_invitati}}/g, '50')
-        .replace(/{{preventivo_id}}/g, '123');
+        .replace(/{{preventivo_id}}/g, '123')
+        .replace(/{{omaggio1}}/g, 'Cocktail di benvenuto')
+        .replace(/{{extra1}}/g, 'DJ incluso');
     
     const whatsappUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(testMessage);
     window.open(whatsappUrl, '_blank');

@@ -492,13 +492,23 @@ class Disco747_Ajax {
                 '{{nome_completo}}' => trim(($preventivo['nome_referente'] ?? '') . ' ' . ($preventivo['cognome_referente'] ?? '')),
                 '{{email}}' => $preventivo['email'] ?? '',
                 '{{telefono}}' => $telefono,
-                '{{data_evento}}' => date('d/m/Y', strtotime($preventivo['data_evento'] ?? '')),
+                '{{data_evento}}' => !empty($preventivo['data_evento']) ? date('d/m/Y', strtotime($preventivo['data_evento'])) : '',
                 '{{tipo_evento}}' => $preventivo['tipo_evento'] ?? '',
+                '{{orario_inizio}}' => $preventivo['orario_inizio'] ?? '',
+                '{{orario_fine}}' => $preventivo['orario_fine'] ?? '',
+                '{{tipo_menu}}' => $preventivo['tipo_menu'] ?? '',
                 '{{menu}}' => $preventivo['tipo_menu'] ?? '',
                 '{{numero_invitati}}' => $preventivo['numero_invitati'] ?? '',
-                '{{importo}}' => 'ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ ' . number_format($preventivo['importo_totale'] ?? 0, 2, ',', '.'),
-                '{{acconto}}' => 'ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ ' . number_format($preventivo['acconto'] ?? 0, 2, ',', '.'),
-                '{{preventivo_id}}' => $preventivo['preventivo_id'] ?? ''
+                '{{importo}}' => '€ ' . number_format($preventivo['importo_totale'] ?? 0, 2, ',', '.'),
+                '{{acconto}}' => '€ ' . number_format($preventivo['acconto'] ?? 0, 2, ',', '.'),
+                '{{saldo}}' => '€ ' . number_format($preventivo['saldo'] ?? 0, 2, ',', '.'),
+                '{{preventivo_id}}' => $preventivo['preventivo_id'] ?? '',
+                '{{omaggio1}}' => $preventivo['omaggio1'] ?? '',
+                '{{omaggio2}}' => $preventivo['omaggio2'] ?? '',
+                '{{omaggio3}}' => $preventivo['omaggio3'] ?? '',
+                '{{extra1}}' => $preventivo['extra1'] ?? '',
+                '{{extra2}}' => $preventivo['extra2'] ?? '',
+                '{{extra3}}' => $preventivo['extra3'] ?? '',
             );
             
             $whatsapp_message = str_replace(array_keys($replacements), array_values($replacements), $whatsapp_message);
