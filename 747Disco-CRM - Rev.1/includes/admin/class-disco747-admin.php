@@ -66,6 +66,11 @@ class Disco747_Admin {
             
             // ✅ NUOVO v12.1.0: Handler AJAX Test Email
             add_action('wp_ajax_disco747_send_test_email', array($this, 'handle_send_test_email'));
+
+            // ✅ Handler per pagina Report Preventivi (admin-post.php)
+            add_action('admin_post_disco747_force_report',      array($this, 'handle_force_report'));
+            add_action('admin_post_disco747_test_report_email', array($this, 'handle_test_report_email'));
+            add_action('admin_post_disco747_reschedule_report', array($this, 'handle_reschedule_report'));
             
             $this->hooks_registered = true;
             $this->log('Hook WordPress registrati (incluso batch scan e test email)');
@@ -124,6 +129,14 @@ class Disco747_Admin {
                 $this->min_capability,
                 'disco747-funnel',
                 array($this, 'render_funnel_page')
+            );
+            add_submenu_page(
+                'disco747-crm',
+                __('📋 Report Preventivi', 'disco747'),
+                __('📋 Report Preventivi', 'disco747'),
+                $this->min_capability,
+                'disco747-report-preventivi',
+                array($this, 'render_report_preventivi_page')
             );
             add_submenu_page(
                 'disco747-crm',
@@ -349,6 +362,52 @@ class Disco747_Admin {
         }
         
         require_once DISCO747_CRM_PLUGIN_DIR . 'includes/admin/views/funnel-automation-page.php';
+    }
+
+    public function render_report_preventivi_page() {
+        if (!current_user_can($this->min_capability)) {
+            wp_die(__('Non hai i permessi.', 'disco747'));
+        }
+        require_once DISCO747_CRM_PLUGIN_DIR . 'includes/admin/views/report-preventivi-page.php';
+    }
+
+    public function handle_force_report() {
+        check_admin_referer('disco747_report_force');
+        if (!current_user_can('manage_options')) {
+            wp_die('Permessi insufficienti');
+        }
+        if (class_exists('Disco747_Weekly_Report')) {
+            $report = new \Disco747_Weekly_Report();
+            $report->send_reports();
+        }
+        wp_safe_redirect(add_query_arg(array('page' => 'disco747-report-preventivi', 'done' => 'forced'), admin_url('admin.php')));
+        exit;
+    }
+
+    public function handle_test_report_email() {
+        check_admin_referer('disco747_report_test');
+        if (!current_user_can('manage_options')) {
+            wp_die('Permessi insufficienti');
+        }
+        if (class_exists('Disco747_Weekly_Report')) {
+            $report = new \Disco747_Weekly_Report();
+            $user   = wp_get_current_user();
+            $report->send_test_to_user($user);
+        }
+        wp_safe_redirect(add_query_arg(array('page' => 'disco747-report-preventivi', 'done' => 'test'), admin_url('admin.php')));
+        exit;
+    }
+
+    public function handle_reschedule_report() {
+        check_admin_referer('disco747_report_reschedule');
+        if (!current_user_can('manage_options')) {
+            wp_die('Permessi insufficienti');
+        }
+        if (class_exists('Disco747_Weekly_Report')) {
+            \Disco747_Weekly_Report::activate();
+        }
+        wp_safe_redirect(add_query_arg(array('page' => 'disco747-report-preventivi', 'done' => 'rescheduled'), admin_url('admin.php')));
+        exit;
     }
 
     public function render_debug_page() {
