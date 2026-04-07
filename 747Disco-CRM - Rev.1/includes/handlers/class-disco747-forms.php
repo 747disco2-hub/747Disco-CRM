@@ -1083,6 +1083,12 @@ class Disco747_Forms {
         // âœ… DEBUG: Log stato ricevuto
         $this->log('[Forms] ðŸ“Š Stato ricevuto dal form: "' . $data['stato'] . '"');
         
+        // 🔒 VALIDAZIONE: Non permettere stato 'confermato' senza acconto
+        if ($data['stato'] === 'confermato' && floatval($data['acconto'] ?? 0) <= 0) {
+            $this->log('[Forms] ⚠️ Stato "confermato" rifiutato: acconto assente o zero. Stato impostato ad "attivo".');
+            $data['stato'] = 'attivo';
+        }
+        
         return $data;
     }
     

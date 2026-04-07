@@ -178,7 +178,9 @@ final class Disco747_CRM_Plugin {
             'includes/handlers/class-disco747-processor.php',
             'includes/funnel/class-disco747-funnel-database.php',
             'includes/funnel/class-disco747-funnel-manager.php',
-            'includes/funnel/class-disco747-funnel-scheduler.php'
+            'includes/funnel/class-disco747-funnel-scheduler.php',
+            // ✅ Report settimanale preventivi non confermati
+            'includes/reports/class-disco747-weekly-report.php'
         );
         
         $loaded_files = 0;
@@ -209,6 +211,10 @@ final class Disco747_CRM_Plugin {
                     // Funnel system è opzionale
                     $optional_missing[] = $file;
                     $this->public_log("⚠️ File funnel opzionale mancante: {$file}", 'WARNING');
+                } elseif (strpos($file, 'reports/') !== false) {
+                    // Report system è opzionale
+                    $optional_missing[] = $file;
+                    $this->public_log("⚠️ File report opzionale mancante: {$file}", 'WARNING');
                 } else {
                     $missing_files[] = $file;
                     $this->public_log("❌ File core critico mancante: {$file}", 'ERROR');
@@ -422,6 +428,20 @@ final class Disco747_CRM_Plugin {
         } catch (Exception $e) {
             $this->public_log('❌ Errore inizializzazione Processor: ' . $e->getMessage(), 'ERROR');
         }
+
+        // 📋 WEEKLY REPORT - Report settimanale preventivi non confermati
+        try {
+            add_action('init', function() {
+                if (class_exists('Disco747_Weekly_Report')) {
+                    new Disco747_Weekly_Report();
+                    $this->public_log('📋 Weekly Report inizializzato');
+                } else {
+                    $this->public_log('⚠️ Classe Disco747_Weekly_Report non trovata', 'WARNING');
+                }
+            }, 15);
+        } catch (Exception $e) {
+            $this->public_log('❌ Errore inizializzazione Weekly Report: ' . $e->getMessage(), 'ERROR');
+        }
     }
 
     /**
@@ -601,6 +621,12 @@ final class Disco747_CRM_Plugin {
                 $this->public_log('✅ Scheduler funnel attivato');
             }
             
+            // Attiva report settimanale
+            if (class_exists('Disco747_Weekly_Report')) {
+                Disco747_Weekly_Report::activate();
+                $this->public_log('✅ Report settimanale attivato');
+            }
+            
             // Flush rewrite rules
             flush_rewrite_rules();
             
@@ -623,6 +649,12 @@ final class Disco747_CRM_Plugin {
                 $scheduler = new Disco747_CRM\Funnel\Disco747_Funnel_Scheduler();
                 $scheduler->deactivate();
                 $this->public_log('✅ Scheduler funnel disattivato');
+            }
+            
+            // Disattiva report settimanale
+            if (class_exists('Disco747_Weekly_Report')) {
+                Disco747_Weekly_Report::deactivate();
+                $this->public_log('✅ Report settimanale disattivato');
             }
             
             // Flush rewrite rules
