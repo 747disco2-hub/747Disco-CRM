@@ -52,6 +52,12 @@ function disco747_ajax_update_preventivo_status() {
     $excel_url = $preventivo['excel_url'];
     $googledrive_file_id = $preventivo['googledrive_file_id'];
     
+    // 🔒 VALIDAZIONE: Non permettere stato 'confermato' senza acconto
+    if ($new_status === 'confermato' && floatval($preventivo['acconto']) <= 0) {
+        wp_send_json_error('Non puoi confermare un preventivo senza acconto. Inserisci prima l\'importo dell\'acconto.');
+        return;
+    }
+    
     // Aggiorna stato nel database
     $updated = $wpdb->update(
         $table_name,
