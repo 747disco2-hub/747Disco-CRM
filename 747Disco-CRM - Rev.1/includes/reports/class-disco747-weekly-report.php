@@ -157,14 +157,29 @@ class Disco747_Weekly_Report {
             $prev_id      = esc_html($p['preventivo_id'] ?: '#' . $p['id']);
 
             // Link telefono e WhatsApp
-            $telefono_raw   = preg_replace('/[^\d+]/', '', $p['telefono'] ?? '');
-            $telefono_clean = ltrim($telefono_raw, '+');  // numero senza simbolo per wa.me
-            $tel_display    = esc_html($p['telefono'] ?: '—');
+            // Normalizza il numero: rimuovi tutto tranne cifre e +
+            $telefono_raw = preg_replace('/[^\d+]/', '', $p['telefono'] ?? '');
+            $tel_display  = esc_html($p['telefono'] ?: '—');
 
             $tel_links = '';
             if ($telefono_raw) {
-                $tel_href = 'tel:+39' . ltrim($telefono_raw, '+0');
-                $wa_href  = 'https://wa.me/39' . ltrim($telefono_clean, '0');
+                // Determina il numero internazionale (E.164 senza '+')
+                if (preg_match('/^\+(\d+)$/', $telefono_raw, $m)) {
+                    // Ha già un prefisso internazionale (es. +393356789000)
+                    $intl_digits = $m[1];
+                } elseif (preg_match('/^0039(\d+)$/', $telefono_raw, $m)) {
+                    // Prefisso italiano in formato 0039
+                    $intl_digits = '39' . $m[1];
+                } elseif (preg_match('/^0(\d+)$/', $telefono_raw, $m)) {
+                    // Numero locale con 0 iniziale (es. 0335...) → aggiungi 39
+                    $intl_digits = '39' . $m[1];
+                } else {
+                    // Numero senza prefisso (es. 3356789000) → aggiungi 39
+                    $intl_digits = '39' . $telefono_raw;
+                }
+
+                $tel_href = 'tel:+' . $intl_digits;
+                $wa_href  = 'https://wa.me/' . $intl_digits;
                 $tel_links = '&nbsp;
                     <a href="' . esc_url($tel_href) . '" style="display:inline-block;padding:4px 10px;background:#1976D2;color:#fff;border-radius:4px;text-decoration:none;font-size:12px;">📞 Chiama</a>
                     &nbsp;
