@@ -373,6 +373,9 @@ class Disco747_Weekly_Report {
         $now       = new DateTime('now', $tz);
         $days      = intval(get_option('disco747_report_frequency_days', 3));
         $send_time = get_option('disco747_report_send_time', '09:00');
+        if (!preg_match('/^\d{2}:\d{2}$/', $send_time)) {
+            $send_time = '09:00';
+        }
         list($hour, $minute) = explode(':', $send_time);
 
         $next = clone $now;

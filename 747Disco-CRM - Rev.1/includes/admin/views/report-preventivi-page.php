@@ -254,7 +254,7 @@ $card_style = 'background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0
                 <input type="hidden" name="action" value="disco747_force_report">
                 <?php wp_nonce_field('disco747_report_force'); ?>
                 <button type="submit" class="button button-secondary"
-                        onclick="return confirm('Sicuro di voler forzare l\'invio adesso?');">
+                        onclick="return confirm(<?php echo esc_js('Sicuro di voler forzare l\'invio adesso?'); ?>);">
                     ▶️ Forza invio subito
                 </button>
             </form>
