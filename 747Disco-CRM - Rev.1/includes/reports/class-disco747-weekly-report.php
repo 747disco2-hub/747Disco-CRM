@@ -95,13 +95,17 @@ class Disco747_Weekly_Report {
         global $wpdb;
         $table = $wpdb->prefix . 'disco747_preventivi';
 
-        // Recupera tutti i preventivi attivi (non confermati, non annullati)
+        // Recupera i preventivi attivi (non confermati) creati negli ultimi 10 giorni
         $preventivi = $wpdb->get_results(
-            "SELECT id, preventivo_id, nome_cliente, nome_referente, cognome_referente,
-                    telefono, data_evento, tipo_evento, importo_preventivo, acconto, created_by
-             FROM {$table}
-             WHERE stato = 'attivo'
-             ORDER BY data_evento ASC",
+            $wpdb->prepare(
+                "SELECT id, preventivo_id, nome_cliente, nome_referente, cognome_referente,
+                        telefono, data_evento, tipo_evento, importo_preventivo, acconto, created_by
+                 FROM {$table}
+                 WHERE stato = 'attivo'
+                   AND created_at >= DATE_SUB(NOW(), INTERVAL %d DAY)
+                 ORDER BY created_at DESC",
+                10
+            ),
             ARRAY_A
         );
 
@@ -158,11 +162,15 @@ class Disco747_Weekly_Report {
         $table = $wpdb->prefix . 'disco747_preventivi';
 
         $preventivi = $wpdb->get_results(
-            "SELECT id, preventivo_id, nome_cliente, nome_referente, cognome_referente,
-                    telefono, data_evento, tipo_evento, importo_preventivo, acconto, created_by
-             FROM {$table}
-             WHERE stato = 'attivo'
-             ORDER BY data_evento ASC",
+            $wpdb->prepare(
+                "SELECT id, preventivo_id, nome_cliente, nome_referente, cognome_referente,
+                        telefono, data_evento, tipo_evento, importo_preventivo, acconto, created_by
+                 FROM {$table}
+                 WHERE stato = 'attivo'
+                   AND created_at >= DATE_SUB(NOW(), INTERVAL %d DAY)
+                 ORDER BY created_at DESC",
+                10
+            ),
             ARRAY_A
         );
 
@@ -280,9 +288,9 @@ class Disco747_Weekly_Report {
                 $tel_href = 'tel:+' . $intl_digits;
                 $wa_href  = 'https://wa.me/' . $intl_digits;
                 $tel_links = '&nbsp;
-                    <a href="' . esc_url($tel_href) . '" style="display:inline-block;padding:4px 10px;background:#1976D2;color:#fff;border-radius:4px;text-decoration:none;font-size:12px;">📞 Chiama</a>
+                    <a href="' . esc_url($tel_href) . '" style="display:inline-block;padding:4px 10px;background:#c28a4d;color:#2b1e1a;border-radius:4px;text-decoration:none;font-size:12px;font-weight:600;">📞 Chiama</a>
                     &nbsp;
-                    <a href="' . esc_url($wa_href) . '" style="display:inline-block;padding:4px 10px;background:#25D366;color:#fff;border-radius:4px;text-decoration:none;font-size:12px;">💬 WhatsApp</a>';
+                    <a href="' . esc_url($wa_href) . '" style="display:inline-block;padding:4px 10px;background:#25D366;color:#fff;border-radius:4px;text-decoration:none;font-size:12px;font-weight:600;">💬 WhatsApp</a>';
             }
 
             $rows_html .= '
@@ -303,35 +311,35 @@ class Disco747_Weekly_Report {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report Preventivi Non Confermati</title>
 </head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:30px 0;">
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#eeeae6;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#eeeae6;padding:30px 0;">
         <tr><td align="center">
-            <table width="700" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1);">
+            <table width="700" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(43,30,26,0.18);">
 
                 <!-- Header -->
                 <tr>
-                    <td style="background:#1a237e;padding:28px 32px;">
-                        <h1 style="margin:0;color:#fff;font-size:22px;">🎉 747 Disco CRM</h1>
-                        <p style="margin:6px 0 0;color:#c5cae9;font-size:14px;">Report preventivi · ' . esc_html($week_label) . '</p>
+                    <td style="background:#2b1e1a;padding:28px 32px;">
+                        <h1 style="margin:0;color:#c28a4d;font-size:22px;">🎉 747 Disco CRM</h1>
+                        <p style="margin:6px 0 0;color:#eeeae6;font-size:14px;">Report preventivi · ' . esc_html($week_label) . '</p>
                     </td>
                 </tr>
 
                 <!-- Body -->
                 <tr>
-                    <td style="padding:28px 32px;">
-                        <p style="margin:0 0 6px;font-size:16px;color:#333;">Ciao <strong>' . esc_html($nome_utente) . '</strong>,</p>
+                    <td style="padding:28px 32px;background:#fff;">
+                        <p style="margin:0 0 6px;font-size:16px;color:#2b1e1a;">Ciao <strong>' . esc_html($nome_utente) . '</strong>,</p>
                         <p style="margin:0 0 24px;font-size:14px;color:#555;">' . esc_html($intro_text) . '</p>
 
                         <!-- Tabella preventivi -->
                         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
                             <thead>
-                                <tr style="background:#e8eaf6;">
-                                    <th style="padding:10px 12px;text-align:left;color:#3949ab;font-weight:700;border-bottom:2px solid #c5cae9;">ID</th>
-                                    <th style="padding:10px 12px;text-align:left;color:#3949ab;font-weight:700;border-bottom:2px solid #c5cae9;">Cliente</th>
-                                    <th style="padding:10px 12px;text-align:left;color:#3949ab;font-weight:700;border-bottom:2px solid #c5cae9;">Data Evento</th>
-                                    <th style="padding:10px 12px;text-align:left;color:#3949ab;font-weight:700;border-bottom:2px solid #c5cae9;">Tipo</th>
-                                    <th style="padding:10px 12px;text-align:left;color:#3949ab;font-weight:700;border-bottom:2px solid #c5cae9;">Importo</th>
-                                    <th style="padding:10px 12px;text-align:left;color:#3949ab;font-weight:700;border-bottom:2px solid #c5cae9;">Contatti</th>
+                                <tr style="background:#c28a4d;">
+                                    <th style="padding:10px 12px;text-align:left;color:#2b1e1a;font-weight:700;border-bottom:2px solid #c28a4d;">ID</th>
+                                    <th style="padding:10px 12px;text-align:left;color:#2b1e1a;font-weight:700;border-bottom:2px solid #c28a4d;">Cliente</th>
+                                    <th style="padding:10px 12px;text-align:left;color:#2b1e1a;font-weight:700;border-bottom:2px solid #c28a4d;">Data Evento</th>
+                                    <th style="padding:10px 12px;text-align:left;color:#2b1e1a;font-weight:700;border-bottom:2px solid #c28a4d;">Tipo</th>
+                                    <th style="padding:10px 12px;text-align:left;color:#2b1e1a;font-weight:700;border-bottom:2px solid #c28a4d;">Importo</th>
+                                    <th style="padding:10px 12px;text-align:left;color:#2b1e1a;font-weight:700;border-bottom:2px solid #c28a4d;">Contatti</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -339,14 +347,14 @@ class Disco747_Weekly_Report {
                             </tbody>
                         </table>
 
-                        <p style="margin:24px 0 0;font-size:12px;color:#999;">' . esc_html($footer_text) . '</p>
+                        <p style="margin:24px 0 0;font-size:12px;color:#90858a;">' . esc_html($footer_text) . '</p>
                     </td>
                 </tr>
 
                 <!-- Footer -->
                 <tr>
-                    <td style="background:#f5f5f5;padding:16px 32px;text-align:center;">
-                        <p style="margin:0;font-size:12px;color:#aaa;">© ' . date('Y') . ' 747 Disco — gestionale.747disco.it</p>
+                    <td style="background:#2b1e1a;padding:16px 32px;text-align:center;">
+                        <p style="margin:0;font-size:12px;color:#c28a4d;">© ' . date('Y') . ' 747 Disco — gestionale.747disco.it</p>
                     </td>
                 </tr>
 
