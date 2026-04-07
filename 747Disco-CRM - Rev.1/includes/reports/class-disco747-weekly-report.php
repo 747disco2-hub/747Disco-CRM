@@ -2,7 +2,7 @@
 /**
  * Weekly Unconfirmed Quotes Report - 747 Disco CRM
  *
- * Invia ogni lunedì mattina alle 09:00 una email a ciascun utente che ha
+ * Invia ogni 3 giorni alle 09:00 una email a ciascun utente che ha
  * generato preventivi, con la lista dei preventivi non ancora confermati
  * (stato = 'attivo'), includendo link per chiamare e scrivere su WhatsApp.
  *
@@ -21,6 +21,23 @@ class Disco747_Weekly_Report {
 
     public function __construct() {
         add_action(self::CRON_HOOK, array($this, 'send_reports'));
+        add_filter('cron_schedules', array($this, 'add_three_days_interval'));
+    }
+
+    /**
+     * Registra un intervallo cron personalizzato di 3 giorni.
+     *
+     * @param  array $schedules Intervalli esistenti.
+     * @return array
+     */
+    public function add_three_days_interval($schedules) {
+        if (!isset($schedules['every_three_days'])) {
+            $schedules['every_three_days'] = array(
+                'interval' => 3 * DAY_IN_SECONDS, // 259200 secondi
+                'display'  => __('Ogni 3 giorni', 'disco747'),
+            );
+        }
+        return $schedules;
     }
 
     // -------------------------------------------------------------------------
@@ -28,16 +45,21 @@ class Disco747_Weekly_Report {
     // -------------------------------------------------------------------------
 
     /**
-     * Schedula il cron settimanale (ogni lunedì alle 09:00 ora del sito).
+     * Schedula il cron ogni 3 giorni alle 09:00 (ora del sito).
      * Chiamare da activate_plugin().
      */
     public static function activate() {
-        if (!wp_next_scheduled(self::CRON_HOOK)) {
-            // Calcola il prossimo lunedì alle 09:00 (ora del sito)
-            $next_monday_9am = self::next_monday_9am();
-            wp_schedule_event($next_monday_9am, 'weekly', self::CRON_HOOK);
-            error_log('[747Disco-WeeklyReport] ✅ Cron settimanale attivato. Prossimo invio: ' . date('Y-m-d H:i:s', $next_monday_9am));
+        // Rimuovi eventuale cron precedente (potrebbe usare l'intervallo 'weekly')
+        $existing = wp_next_scheduled(self::CRON_HOOK);
+        if ($existing) {
+            wp_unschedule_event($existing, self::CRON_HOOK);
         }
+        wp_clear_scheduled_hook(self::CRON_HOOK);
+
+        // Schedula con il nuovo intervallo ogni 3 giorni
+        $next_run = self::next_run_9am();
+        wp_schedule_event($next_run, 'every_three_days', self::CRON_HOOK);
+        error_log('[747Disco-WeeklyReport] ✅ Cron ogni 3 giorni attivato. Prossimo invio: ' . date('Y-m-d H:i:s', $next_run));
     }
 
     /**
@@ -50,7 +72,7 @@ class Disco747_Weekly_Report {
             wp_unschedule_event($timestamp, self::CRON_HOOK);
         }
         wp_clear_scheduled_hook(self::CRON_HOOK);
-        error_log('[747Disco-WeeklyReport] ✅ Cron settimanale disattivato.');
+        error_log('[747Disco-WeeklyReport] ✅ Cron ogni 3 giorni disattivato.');
     }
 
     // -------------------------------------------------------------------------
@@ -62,7 +84,7 @@ class Disco747_Weekly_Report {
      * report personalizzato a ogni utente creatore.
      */
     public function send_reports() {
-        error_log('[747Disco-WeeklyReport] 🔄 Avvio invio report settimanale...');
+        error_log('[747Disco-WeeklyReport] 🔄 Avvio invio report ogni 3 giorni...');
 
         global $wpdb;
         $table = $wpdb->prefix . 'disco747_preventivi';
@@ -123,7 +145,7 @@ class Disco747_Weekly_Report {
      */
     private function send_report_to_user($user, $lista) {
         $count   = count($lista);
-        $subject = '📋 Report settimanale — ' . $count . ' ' . ($count === 1 ? 'preventivo' : 'preventivi') . ' non confermati';
+        $subject = '📋 Report preventivi — ' . $count . ' ' . ($count === 1 ? 'preventivo' : 'preventivi') . ' non confermati';
 
         $html = $this->build_email_html($user, $lista);
 
@@ -213,7 +235,7 @@ class Disco747_Weekly_Report {
                 <tr>
                     <td style="background:#1a237e;padding:28px 32px;">
                         <h1 style="margin:0;color:#fff;font-size:22px;">🎉 747 Disco CRM</h1>
-                        <p style="margin:6px 0 0;color:#c5cae9;font-size:14px;">Report settimanale · ' . esc_html($week_label) . '</p>
+                        <p style="margin:6px 0 0;color:#c5cae9;font-size:14px;">Report ogni 3 giorni · ' . esc_html($week_label) . '</p>
                     </td>
                 </tr>
 
@@ -244,7 +266,7 @@ class Disco747_Weekly_Report {
                         </table>
 
                         <p style="margin:24px 0 0;font-size:12px;color:#999;">
-                            Questo report viene inviato automaticamente ogni lunedì mattina dal sistema 747 Disco CRM.
+                            Questo report viene inviato automaticamente ogni 3 giorni alle 09:00 dal sistema 747 Disco CRM.
                         </p>
                     </td>
                 </tr>
@@ -270,30 +292,16 @@ class Disco747_Weekly_Report {
     // -------------------------------------------------------------------------
 
     /**
-     * Restituisce il timestamp Unix del prossimo lunedì alle 09:00 (ora del sito).
+     * Restituisce il timestamp Unix di tra 3 giorni alle 09:00 (ora del sito).
      *
      * @return int
      */
-    private static function next_monday_9am() {
-        $tz     = new DateTimeZone(wp_timezone_string() ?: 'Europe/Rome');
-        $now    = new DateTime('now', $tz);
-        $dow    = (int) $now->format('N'); // 1=lun … 7=dom
-
-        if ($dow === 1 && $now->format('H:i') < '09:00') {
-            // Oggi è lunedì e non sono ancora le 9 → schedula per oggi
-            $next = clone $now;
-        } else {
-            // Prossimo lunedì
-            $days_ahead = (8 - $dow) % 7;
-            if ($days_ahead === 0) {
-                $days_ahead = 7;
-            }
-            $next = clone $now;
-            $next->modify('+' . $days_ahead . ' days');
-        }
-
+    private static function next_run_9am() {
+        $tz  = new DateTimeZone(wp_timezone_string() ?: 'Europe/Rome');
+        $now = new DateTime('now', $tz);
+        $next = clone $now;
+        $next->modify('+3 days');
         $next->setTime(9, 0, 0);
-
         return $next->getTimestamp();
     }
 }
