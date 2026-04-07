@@ -1,10 +1,12 @@
 <?php
 /**
- * Weekly Unconfirmed Quotes Report - 747 Disco CRM
+ * Unconfirmed Quotes Report - 747 Disco CRM
  *
- * Invia ogni lunedì mattina alle 09:00 una email a ciascun utente che ha
- * generato preventivi, con la lista dei preventivi non ancora confermati
+ * Invia periodicamente (frequenza configurabile) una email a ciascun utente
+ * che ha generato preventivi, con la lista dei preventivi non ancora confermati
  * (stato = 'attivo'), includendo link per chiamare e scrivere su WhatsApp.
+ *
+ * Le impostazioni sono gestite dalla pagina admin "Report Preventivi".
  *
  * @package    Disco747_CRM
  * @subpackage Reports
@@ -21,6 +23,19 @@ class Disco747_Weekly_Report {
 
     public function __construct() {
         add_action(self::CRON_HOOK, array($this, 'send_reports'));
+        add_filter('cron_schedules', array($this, 'add_custom_interval'));
+    }
+
+    /**
+     * Registra l'intervallo cron dinamico basato sull'opzione disco747_report_frequency_days.
+     */
+    public function add_custom_interval($schedules) {
+        $days = intval(get_option('disco747_report_frequency_days', 3));
+        $schedules['disco747_report_interval'] = array(
+            'interval' => $days * DAY_IN_SECONDS,
+            'display'  => sprintf(__('Ogni %d giorni (747 Disco Report)', 'disco747'), $days),
+        );
+        return $schedules;
     }
 
     // -------------------------------------------------------------------------
@@ -28,20 +43,28 @@ class Disco747_Weekly_Report {
     // -------------------------------------------------------------------------
 
     /**
-     * Schedula il cron settimanale (ogni lunedì alle 09:00 ora del sito).
-     * Chiamare da activate_plugin().
+     * Schedula (o ri-schedula) il cron in base alle impostazioni correnti.
+     * Chiamare da activate_plugin() e ogni volta che le impostazioni cambiano.
      */
     public static function activate() {
-        if (!wp_next_scheduled(self::CRON_HOOK)) {
-            // Calcola il prossimo lunedì alle 09:00 (ora del sito)
-            $next_monday_9am = self::next_monday_9am();
-            wp_schedule_event($next_monday_9am, 'weekly', self::CRON_HOOK);
-            error_log('[747Disco-WeeklyReport] ✅ Cron settimanale attivato. Prossimo invio: ' . date('Y-m-d H:i:s', $next_monday_9am));
+        $existing = wp_next_scheduled(self::CRON_HOOK);
+        if ($existing) {
+            wp_unschedule_event($existing, self::CRON_HOOK);
         }
+        wp_clear_scheduled_hook(self::CRON_HOOK);
+
+        if (!intval(get_option('disco747_report_enabled', 1))) {
+            error_log('[747Disco-Report] ℹ️ Report disabilitato dalle impostazioni. Cron non schedulato.');
+            return;
+        }
+
+        $next_run = self::next_run_at();
+        wp_schedule_event($next_run, 'disco747_report_interval', self::CRON_HOOK);
+        error_log('[747Disco-Report] ✅ Cron schedulato. Prossimo invio: ' . date('Y-m-d H:i:s', $next_run));
     }
 
     /**
-     * Rimuove il cron settimanale.
+     * Rimuove il cron.
      * Chiamare da deactivate_plugin().
      */
     public static function deactivate() {
@@ -50,7 +73,7 @@ class Disco747_Weekly_Report {
             wp_unschedule_event($timestamp, self::CRON_HOOK);
         }
         wp_clear_scheduled_hook(self::CRON_HOOK);
-        error_log('[747Disco-WeeklyReport] ✅ Cron settimanale disattivato.');
+        error_log('[747Disco-Report] ✅ Cron disattivato.');
     }
 
     // -------------------------------------------------------------------------
@@ -62,7 +85,12 @@ class Disco747_Weekly_Report {
      * report personalizzato a ogni utente creatore.
      */
     public function send_reports() {
-        error_log('[747Disco-WeeklyReport] 🔄 Avvio invio report settimanale...');
+        if (!intval(get_option('disco747_report_enabled', 1))) {
+            error_log('[747Disco-Report] ℹ️ Report disabilitato dalle impostazioni.');
+            return;
+        }
+
+        error_log('[747Disco-Report] 🔄 Avvio invio report...');
 
         global $wpdb;
         $table = $wpdb->prefix . 'disco747_preventivi';
@@ -78,7 +106,8 @@ class Disco747_Weekly_Report {
         );
 
         if (empty($preventivi)) {
-            error_log('[747Disco-WeeklyReport] ℹ️ Nessun preventivo non confermato. Nessuna email inviata.');
+            error_log('[747Disco-Report] ℹ️ Nessun preventivo non confermato. Nessuna email inviata.');
+            $this->save_run_log(0, 0);
             return;
         }
 
@@ -93,25 +122,73 @@ class Disco747_Weekly_Report {
         }
 
         if (empty($by_user)) {
-            error_log('[747Disco-WeeklyReport] ℹ️ Nessun preventivo associato a un utente. Nessuna email inviata.');
+            error_log('[747Disco-Report] ℹ️ Nessun preventivo associato a un utente. Nessuna email inviata.');
+            $this->save_run_log(0, count($preventivi));
             return;
         }
 
         foreach ($by_user as $user_id => $lista) {
             $user = get_user_by('id', $user_id);
             if (!$user || !is_email($user->user_email)) {
-                error_log('[747Disco-WeeklyReport] ⚠️ Utente ID ' . $user_id . ' non trovato o email non valida. Skip.');
+                error_log('[747Disco-Report] ⚠️ Utente ID ' . $user_id . ' non trovato o email non valida. Skip.');
                 continue;
             }
 
             $sent = $this->send_report_to_user($user, $lista);
 
             if ($sent) {
-                error_log('[747Disco-WeeklyReport] ✅ Report inviato a ' . $user->user_email . ' (' . count($lista) . ' preventivi).');
+                error_log('[747Disco-Report] ✅ Report inviato a ' . $user->user_email . ' (' . count($lista) . ' preventivi).');
             } else {
-                error_log('[747Disco-WeeklyReport] ❌ Errore invio report a ' . $user->user_email . '.');
+                error_log('[747Disco-Report] ❌ Errore invio report a ' . $user->user_email . '.');
             }
         }
+
+        $this->save_run_log(count($by_user), count($preventivi));
+    }
+
+    /**
+     * Invia il report a un singolo utente usando tutti i preventivi attivi
+     * (non filtrati per created_by). Usato per il test dalla pagina admin.
+     *
+     * @param  WP_User $user Utente destinatario.
+     * @return bool
+     */
+    public function send_test_to_user($user) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'disco747_preventivi';
+
+        $preventivi = $wpdb->get_results(
+            "SELECT id, preventivo_id, nome_cliente, nome_referente, cognome_referente,
+                    telefono, data_evento, tipo_evento, importo_preventivo, acconto, created_by
+             FROM {$table}
+             WHERE stato = 'attivo'
+             ORDER BY data_evento ASC",
+            ARRAY_A
+        );
+
+        if (empty($preventivi)) {
+            // Invia comunque il report con lista vuota
+            $preventivi = array();
+        }
+
+        return $this->send_report_to_user($user, $preventivi);
+    }
+
+    /**
+     * Restituisce lo stato corrente del cron.
+     *
+     * @return array
+     */
+    public static function get_cron_status() {
+        $next = wp_next_scheduled(self::CRON_HOOK);
+        return array(
+            'scheduled'  => (bool) $next,
+            'next_run'   => $next ? date_i18n('d/m/Y H:i', $next) : '—',
+            'next_ts'    => $next ?: 0,
+            'frequency'  => intval(get_option('disco747_report_frequency_days', 3)),
+            'send_time'  => get_option('disco747_report_send_time', '09:00'),
+            'enabled'    => (bool) intval(get_option('disco747_report_enabled', 1)),
+        );
     }
 
     /**
@@ -122,8 +199,20 @@ class Disco747_Weekly_Report {
      * @return bool
      */
     private function send_report_to_user($user, $lista) {
-        $count   = count($lista);
-        $subject = '📋 Report settimanale — ' . $count . ' ' . ($count === 1 ? 'preventivo' : 'preventivi') . ' non confermati';
+        $count            = count($lista);
+        $frequency        = intval(get_option('disco747_report_frequency_days', 3));
+        $send_time        = get_option('disco747_report_send_time', '09:00');
+        $subject_template = get_option('disco747_report_email_subject', '📋 Report preventivi — {count} non confermati');
+
+        $replacements = array(
+            '{count}'     => $count,
+            '{frequency}' => $frequency,
+            '{time}'      => $send_time,
+            '{user}'      => $user->display_name ?: $user->user_login,
+            '{date}'      => date_i18n('d/m/Y'),
+        );
+
+        $subject = str_replace(array_keys($replacements), array_values($replacements), $subject_template);
 
         $html = $this->build_email_html($user, $lista);
 
@@ -145,6 +234,22 @@ class Disco747_Weekly_Report {
         $nome_utente = $user->display_name ?: $user->user_login;
         $count       = count($lista);
         $week_label  = date_i18n('d/m/Y');
+        $frequency   = intval(get_option('disco747_report_frequency_days', 3));
+        $send_time   = get_option('disco747_report_send_time', '09:00');
+
+        $replacements = array(
+            '{count}'     => $count,
+            '{frequency}' => $frequency,
+            '{time}'      => $send_time,
+            '{user}'      => esc_html($nome_utente),
+            '{date}'      => $week_label,
+        );
+
+        $intro_template  = get_option('disco747_report_email_intro', 'Hai {count} preventivi non ancora confermati. Contatta i clienti per chiudere la prenotazione!');
+        $footer_template = get_option('disco747_report_email_footer', 'Questo report viene inviato automaticamente ogni {frequency} giorni alle {time} dal sistema 747 Disco CRM.');
+
+        $intro_text  = str_replace(array_keys($replacements), array_values($replacements), $intro_template);
+        $footer_text = str_replace(array_keys($replacements), array_values($replacements), $footer_template);
 
         $rows_html = '';
         foreach ($lista as $p) {
@@ -157,24 +262,18 @@ class Disco747_Weekly_Report {
             $prev_id      = esc_html($p['preventivo_id'] ?: '#' . $p['id']);
 
             // Link telefono e WhatsApp
-            // Normalizza il numero: rimuovi tutto tranne cifre e +
             $telefono_raw = preg_replace('/[^\d+]/', '', $p['telefono'] ?? '');
             $tel_display  = esc_html($p['telefono'] ?: '—');
 
             $tel_links = '';
             if ($telefono_raw) {
-                // Determina il numero internazionale (E.164 senza '+')
                 if (preg_match('/^\+(\d+)$/', $telefono_raw, $m)) {
-                    // Ha già un prefisso internazionale (es. +393356789000)
                     $intl_digits = $m[1];
                 } elseif (preg_match('/^0039(\d+)$/', $telefono_raw, $m)) {
-                    // Prefisso italiano in formato 0039
                     $intl_digits = '39' . $m[1];
                 } elseif (preg_match('/^0(\d+)$/', $telefono_raw, $m)) {
-                    // Numero locale con 0 iniziale (es. 0335...) → aggiungi 39
                     $intl_digits = '39' . $m[1];
                 } else {
-                    // Numero senza prefisso (es. 3356789000) → aggiungi 39
                     $intl_digits = '39' . $telefono_raw;
                 }
 
@@ -213,7 +312,7 @@ class Disco747_Weekly_Report {
                 <tr>
                     <td style="background:#1a237e;padding:28px 32px;">
                         <h1 style="margin:0;color:#fff;font-size:22px;">🎉 747 Disco CRM</h1>
-                        <p style="margin:6px 0 0;color:#c5cae9;font-size:14px;">Report settimanale · ' . esc_html($week_label) . '</p>
+                        <p style="margin:6px 0 0;color:#c5cae9;font-size:14px;">Report preventivi · ' . esc_html($week_label) . '</p>
                     </td>
                 </tr>
 
@@ -221,10 +320,7 @@ class Disco747_Weekly_Report {
                 <tr>
                     <td style="padding:28px 32px;">
                         <p style="margin:0 0 6px;font-size:16px;color:#333;">Ciao <strong>' . esc_html($nome_utente) . '</strong>,</p>
-                        <p style="margin:0 0 24px;font-size:14px;color:#555;">
-                            Hai <strong>' . $count . '</strong> ' . ($count === 1 ? 'preventivo' : 'preventivi') . ' non ancora confermati.
-                            Contatta i clienti per chiudere la prenotazione!
-                        </p>
+                        <p style="margin:0 0 24px;font-size:14px;color:#555;">' . esc_html($intro_text) . '</p>
 
                         <!-- Tabella preventivi -->
                         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
@@ -243,9 +339,7 @@ class Disco747_Weekly_Report {
                             </tbody>
                         </table>
 
-                        <p style="margin:24px 0 0;font-size:12px;color:#999;">
-                            Questo report viene inviato automaticamente ogni lunedì mattina dal sistema 747 Disco CRM.
-                        </p>
+                        <p style="margin:24px 0 0;font-size:12px;color:#999;">' . esc_html($footer_text) . '</p>
                     </td>
                 </tr>
 
@@ -270,30 +364,38 @@ class Disco747_Weekly_Report {
     // -------------------------------------------------------------------------
 
     /**
-     * Restituisce il timestamp Unix del prossimo lunedì alle 09:00 (ora del sito).
+     * Calcola il timestamp del prossimo invio in base alle impostazioni.
      *
      * @return int
      */
-    private static function next_monday_9am() {
-        $tz     = new DateTimeZone(wp_timezone_string() ?: 'Europe/Rome');
-        $now    = new DateTime('now', $tz);
-        $dow    = (int) $now->format('N'); // 1=lun … 7=dom
+    private static function next_run_at() {
+        $tz        = new DateTimeZone(wp_timezone_string() ?: 'Europe/Rome');
+        $now       = new DateTime('now', $tz);
+        $days      = intval(get_option('disco747_report_frequency_days', 3));
+        $send_time = get_option('disco747_report_send_time', '09:00');
+        list($hour, $minute) = explode(':', $send_time);
 
-        if ($dow === 1 && $now->format('H:i') < '09:00') {
-            // Oggi è lunedì e non sono ancora le 9 → schedula per oggi
-            $next = clone $now;
-        } else {
-            // Prossimo lunedì
-            $days_ahead = (8 - $dow) % 7;
-            if ($days_ahead === 0) {
-                $days_ahead = 7;
-            }
-            $next = clone $now;
-            $next->modify('+' . $days_ahead . ' days');
-        }
-
-        $next->setTime(9, 0, 0);
+        $next = clone $now;
+        $next->modify('+' . $days . ' days');
+        $next->setTime((int) $hour, (int) $minute, 0);
 
         return $next->getTimestamp();
+    }
+
+    /**
+     * Salva il log dell'ultima esecuzione (ultime 5 voci).
+     *
+     * @param int $emails  Numero di email inviate.
+     * @param int $count   Numero di preventivi trovati.
+     */
+    private function save_run_log($emails, $count) {
+        $log = get_option('disco747_report_last_run_log', array());
+        array_unshift($log, array(
+            'date'   => current_time('d/m/Y H:i'),
+            'emails' => $emails,
+            'count'  => $count,
+        ));
+        $log = array_slice($log, 0, 5);
+        update_option('disco747_report_last_run_log', $log);
     }
 }
