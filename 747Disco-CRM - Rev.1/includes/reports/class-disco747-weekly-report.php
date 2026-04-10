@@ -280,10 +280,17 @@ class Disco747_Weekly_Report {
                 $nome_referente_wa = trim($p['nome_referente'] ?? '');
                 $tipo_evento_wa    = trim($p['tipo_evento'] ?? '');
 
-                $wa_message = "Ciao {$nome_referente_wa}, spero tutto bene! Sono Andrea del 747.\n"
-                    . "Ti scrivo per fare un check sulla disponibilità della sala per il tuo {$tipo_evento_wa}. "
-                    . "Dopo il sopralluogo di tre giorni fa, ho tenuto la data in sospeso, ma ho diverse richieste che premono per lo stesso periodo.\n"
-                    . "Ci tenevo a darti la precedenza: il preventivo è in linea con quello che cercavi o vuoi che sistemiamo qualche dettaglio insieme?";
+                $wa_message_template = get_option(
+                    'disco747_report_whatsapp_message',
+                    "Ciao {nome}, spero tutto bene! Sono Andrea del 747.\nTi scrivo per fare un check sulla disponibilità della sala per il tuo {tipo_evento}. Dopo il sopralluogo di tre giorni fa, ho tenuto la data in sospeso, ma ho diverse richieste che premono per lo stesso periodo.\nCi tenevo a darti la precedenza: il preventivo è in linea con quello che cercavi o vuoi che sistemiamo qualche dettaglio insieme?"
+                );
+
+                // Sostituisce i placeholder con i dati reali del preventivo
+                $wa_message = str_replace(
+                    array('{nome}', '{tipo_evento}'),
+                    array($nome_referente_wa, $tipo_evento_wa),
+                    $wa_message_template
+                );
 
                 $tel_href = 'tel:+' . $intl_digits;
                 $wa_href  = 'https://wa.me/' . $intl_digits . '?text=' . rawurlencode($wa_message);

@@ -52,6 +52,15 @@ if (isset($_POST['disco747_save_email_text'])) {
     $notice_success = '✅ Testo email salvato correttamente.';
 }
 
+// ─── Salvataggio messaggio WhatsApp ──────────────────────────────────────────
+if (isset($_POST['disco747_save_whatsapp_message'])) {
+    check_admin_referer('disco747_report_settings');
+
+    update_option('disco747_report_whatsapp_message', sanitize_textarea_field($_POST['report_whatsapp_message'] ?? ''));
+
+    $notice_success = '✅ Messaggio WhatsApp salvato.';
+}
+
 // ─── Leggi valori correnti ───────────────────────────────────────────────────
 $frequency  = intval(get_option('disco747_report_frequency_days', 3));
 $send_time  = get_option('disco747_report_send_time', '09:00');
@@ -59,6 +68,7 @@ $enabled    = intval(get_option('disco747_report_enabled', 1));
 $subject    = get_option('disco747_report_email_subject', '📋 Report preventivi — {count} non confermati');
 $intro      = get_option('disco747_report_email_intro', 'Hai {count} preventivi non ancora confermati. Contatta i clienti per chiudere la prenotazione!');
 $footer     = get_option('disco747_report_email_footer', 'Questo report viene inviato automaticamente ogni {frequency} giorni alle {time} dal sistema 747 Disco CRM.');
+$whatsapp_message = get_option('disco747_report_whatsapp_message', "Ciao {nome}, spero tutto bene! Sono Andrea del 747.\nTi scrivo per fare un check sulla disponibilità della sala per il tuo {tipo_evento}. Dopo il sopralluogo di tre giorni fa, ho tenuto la data in sospeso, ma ho diverse richieste che premono per lo stesso periodo.\nCi tenevo a darti la precedenza: il preventivo è in linea con quello che cercavi o vuoi che sistemiamo qualche dettaglio insieme?");
 
 // ─── Stato cron ──────────────────────────────────────────────────────────────
 $cron_status = class_exists('Disco747_Weekly_Report')
@@ -207,7 +217,46 @@ $card_style = 'background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0
     </div>
 
     <!-- ================================================================== -->
-    <!-- SEZIONE 3: Test e stato cron                                        -->
+    <!-- SEZIONE 3: Messaggio WhatsApp di follow-up                         -->
+    <!-- ================================================================== -->
+    <div style="<?php echo esc_attr($card_style); ?>">
+        <h2 style="margin-top:0;font-size:1.2rem;">💬 Messaggio WhatsApp di follow-up</h2>
+
+        <p style="color:#666;font-size:13px;margin-top:0;">
+            Placeholder disponibili:
+            <code>{nome}</code> → Nome del cliente (es. Mario),
+            <code>{tipo_evento}</code> → Tipo di evento (es. Compleanno).
+        </p>
+
+        <form method="post">
+            <?php wp_nonce_field('disco747_report_settings'); ?>
+
+            <table class="form-table" style="margin:0;">
+                <tr>
+                    <th scope="row" style="width:220px;">
+                        <label for="report_whatsapp_message">Testo del messaggio</label>
+                    </th>
+                    <td>
+                        <textarea name="report_whatsapp_message" id="report_whatsapp_message"
+                                  class="large-text" rows="8"><?php echo esc_textarea($whatsapp_message); ?></textarea>
+                        <p class="description">
+                            Usa <code>{nome}</code> per il nome del cliente e <code>{tipo_evento}</code> per il tipo di evento.
+                            I ritorni a capo vengono rispettati nel link WhatsApp.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+
+            <p style="margin-top:16px;">
+                <button type="submit" name="disco747_save_whatsapp_message" class="button button-primary">
+                    💾 Salva messaggio WhatsApp
+                </button>
+            </p>
+        </form>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- SEZIONE 4: Test e stato cron                                        -->
     <!-- ================================================================== -->
     <div style="<?php echo esc_attr($card_style); ?>">
         <h2 style="margin-top:0;font-size:1.2rem;">🧪 Test e stato cron</h2>
