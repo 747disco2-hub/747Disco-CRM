@@ -1,0 +1,12 @@
+{
+    "name": "disco747/crm-plugin",
+    "description": "747 Disco CRM WordPress Plugin",
+    "type": "wordpress-plugin",
+    "require": {
+        "dompdf/dompdf": "^2.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
