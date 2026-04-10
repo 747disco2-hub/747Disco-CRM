@@ -225,7 +225,9 @@ $card_style = 'background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0
         <p style="color:#666;font-size:13px;margin-top:0;">
             Placeholder disponibili:
             <code>{nome}</code> → Nome del cliente (es. Mario),
-            <code>{tipo_evento}</code> → Tipo di evento (es. Compleanno).
+            <code>{tipo_evento}</code> → Tipo di evento (es. Compleanno),
+            <code>{mittente}</code> → Nome dell'utente WordPress che invia il report (es. Andrea, Federico).
+            Le emoji sono supportate ✅
         </p>
 
         <form method="post">

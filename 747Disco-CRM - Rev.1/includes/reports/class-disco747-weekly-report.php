@@ -282,13 +282,14 @@ class Disco747_Weekly_Report {
 
                 $wa_message_template = get_option(
                     'disco747_report_whatsapp_message',
-                    "Ciao {nome}, spero tutto bene! Sono Andrea del 747.\nTi scrivo per fare un check sulla disponibilità della sala per il tuo {tipo_evento}. Dopo il sopralluogo di tre giorni fa, ho tenuto la data in sospeso, ma ho diverse richieste che premono per lo stesso periodo.\nCi tenevo a darti la precedenza: il preventivo è in linea con quello che cercavi o vuoi che sistemiamo qualche dettaglio insieme?"
+                    "Ciao {nome}! 👋\n\nSono {mittente} del 747 Disco 🎉\n\nTi scrivo per fare un check sulla disponibilità della sala per il tuo {tipo_evento} 🎊\n\nDopo il nostro sopralluogo di qualche giorno fa ho tenuto la data in sospeso per te, ma ho diverse richieste che stanno premendo per lo stesso periodo 📅\n\nCi tenevo a darti la precedenza! 🙌\nIl preventivo è in linea con quello che cercavi, o vuoi che sistemiamo qualche dettaglio insieme? 💬\n\nA presto! ✨"
                 );
 
                 // Sostituisce i placeholder con i dati reali del preventivo
+                $nome_mittente_wa = $nome_utente; // display_name dell'utente WP che riceve la mail
                 $wa_message = str_replace(
-                    array('{nome}', '{tipo_evento}'),
-                    array($nome_referente_wa, $tipo_evento_wa),
+                    array('{nome}', '{tipo_evento}', '{mittente}'),
+                    array($nome_referente_wa, $tipo_evento_wa, $nome_mittente_wa),
                     $wa_message_template
                 );
 
@@ -297,7 +298,7 @@ class Disco747_Weekly_Report {
                 $tel_links = '&nbsp;
                     <a href="' . esc_url($tel_href) . '" style="display:inline-block;padding:4px 10px;background:#c28a4d;color:#2b1e1a;border-radius:4px;text-decoration:none;font-size:12px;font-weight:600;">📞 Chiama</a>
                     &nbsp;
-                    <a href="' . esc_url($wa_href) . '" style="display:inline-block;padding:4px 10px;background:#25D366;color:#fff;border-radius:4px;text-decoration:none;font-size:12px;font-weight:600;">💬 WhatsApp</a>';
+                    <a href="' . $wa_href . '" style="display:inline-block;padding:4px 10px;background:#25D366;color:#fff;border-radius:4px;text-decoration:none;font-size:12px;font-weight:700;">💬 WhatsApp</a>';
             }
 
             $rows_html .= '
