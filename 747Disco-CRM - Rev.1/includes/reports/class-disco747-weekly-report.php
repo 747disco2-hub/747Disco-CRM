@@ -275,18 +275,18 @@ class Disco747_Weekly_Report {
 
             $tel_links = '';
             if ($telefono_raw) {
-                if (preg_match('/^\+(\d+)$/', $telefono_raw, $m)) {
-                    $intl_digits = $m[1];
-                } elseif (preg_match('/^0039(\d+)$/', $telefono_raw, $m)) {
-                    $intl_digits = '39' . $m[1];
-                } elseif (preg_match('/^0(\d+)$/', $telefono_raw, $m)) {
-                    $intl_digits = '39' . $m[1];
-                } else {
-                    $intl_digits = '39' . $telefono_raw;
-                }
+                $intl_digits = $this->normalize_phone_for_wa($telefono_raw);
+
+                $nome_referente_wa = trim($p['nome_referente'] ?? '');
+                $tipo_evento_wa    = trim($p['tipo_evento'] ?? '');
+
+                $wa_message = "Ciao {$nome_referente_wa}, spero tutto bene! Sono Andrea del 747.\n"
+                    . "Ti scrivo per fare un check sulla disponibilità della sala per il tuo {$tipo_evento_wa}. "
+                    . "Dopo il sopralluogo di tre giorni fa, ho tenuto la data in sospeso, ma ho diverse richieste che premono per lo stesso periodo.\n"
+                    . "Ci tenevo a darti la precedenza: il preventivo è in linea con quello che cercavi o vuoi che sistemiamo qualche dettaglio insieme?";
 
                 $tel_href = 'tel:+' . $intl_digits;
-                $wa_href  = 'https://wa.me/' . $intl_digits;
+                $wa_href  = 'https://wa.me/' . $intl_digits . '?text=' . rawurlencode($wa_message);
                 $tel_links = '&nbsp;
                     <a href="' . esc_url($tel_href) . '" style="display:inline-block;padding:4px 10px;background:#c28a4d;color:#2b1e1a;border-radius:4px;text-decoration:none;font-size:12px;font-weight:600;">📞 Chiama</a>
                     &nbsp;
@@ -391,6 +391,50 @@ class Disco747_Weekly_Report {
         $next->setTime((int) $hour, (int) $minute, 0);
 
         return $next->getTimestamp();
+    }
+
+    /**
+     * Normalizza un numero di telefono in formato internazionale (senza +) per wa.me.
+     *
+     * Gestisce tutti i formati in cui il numero può essere salvato nel DB:
+     *   +393331234567  → 393331234567
+     *   00393331234567 → 393331234567
+     *   3331234567     → 393331234567
+     *   333 123 4567   → 393331234567
+     *   06123456       → 3906123456
+     *
+     * @param string $raw Numero grezzo (può contenere spazi, +, ecc.).
+     * @return string Cifre internazionali senza + (es. 393331234567).
+     */
+    private function normalize_phone_for_wa(string $raw): string {
+        // 1. Rimuovi tutto tranne cifre e +
+        $digits_plus = preg_replace('/[^\d+]/', '', $raw);
+
+        // 2. Se inizia con +39 → rimuovi solo il +
+        if (substr($digits_plus, 0, 3) === '+39') {
+            return substr($digits_plus, 1);
+        }
+
+        // Da qui in poi lavoriamo solo con cifre
+        $digits = preg_replace('/[^\d]/', '', $digits_plus);
+
+        // 3. Se inizia con 0039 → rimuovi 00
+        if (substr($digits, 0, 4) === '0039') {
+            return substr($digits, 2);
+        }
+
+        // 4. Se inizia con 39 e ha almeno 11 cifre → prefisso italiano già presente
+        if (substr($digits, 0, 2) === '39' && strlen($digits) >= 11) {
+            return $digits;
+        }
+
+        // 5. Se inizia con 0 (numero locale con zero, es. 06...) → prefissa con 39 mantenendo lo 0
+        if (substr($digits, 0, 1) === '0') {
+            return '39' . $digits;
+        }
+
+        // 6. Altrimenti (es. 3331234567) → aggiungi 39 davanti
+        return '39' . $digits;
     }
 
     /**
