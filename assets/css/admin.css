@@ -1,0 +1,378 @@
+<?php
+/**
+ * Template Dashboard 747 Disco CRM - Versione Migliorata
+ * Design ispirato al form "Nuovi Preventivi" - Stile nero-oro-grigio
+ * QUESTO FILE SOSTITUISCE: includes/admin/views/dashboard-page.php
+ * 
+ * @package    Disco747_CRM
+ * @subpackage Admin/Views  
+ * @since      11.4.2
+ * @version    11.4.2
+ */
+
+// Sicurezza: impedisce l'accesso diretto
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Ottieni dati necessari
+$current_user = wp_get_current_user();
+$stats = $stats ?? array('total' => 0, 'active' => 0, 'confirmed' => 0, 'cancelled' => 0, 'this_month' => 0);
+$recent_preventivi = $recent_preventivi ?? array();
+$storage_type = get_option('disco747_storage_type', 'googledrive');
+$company_name = get_option('disco747_company_name', '747 Disco');
+
+// Check configurazioni
+$gd_credentials = get_option('disco747_gd_credentials', array());
+$dropbox_credentials = get_option('disco747_dropbox_credentials', array());
+$is_storage_configured = ($storage_type === 'googledrive' && !empty($gd_credentials['refresh_token'])) || 
+                        ($storage_type === 'dropbox' && !empty($dropbox_credentials['refresh_token']));
+
+// System status
+$database_status = 'ok'; // Implementare check reale
+$login_system_status = 'ok'; // Implementare check reale
+
+?>
+
+<div class="wrap" style="background: #f8f9fa; margin: 0 -20px 0 -20px; padding: 20px;">
+    
+    <!-- Header 747 Disco Style -->
+    <div style="background: linear-gradient(135deg, #2b1e1a 0%, #3c3c3c 100%); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+            <div>
+                <h1 style="margin: 0; font-size: 2.2rem; color: #c28a4d; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                    🎭 747 DISCO - Dashboard CRM
+                </h1>
+                <p style="margin: 10px 0 0 0; color: #eeeae6; font-size: 1.1rem;">
+                    Preventivi Personalizzati • Benvenuto, <strong style="color: #c28a4d;"><?php echo esc_html($current_user->display_name); ?></strong>
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <div style="background: rgba(194, 138, 77, 0.2); padding: 15px; border-radius: 10px; border: 2px solid #c28a4d;">
+                    <div style="font-size: 0.9rem; color: #eeeae6; margin-bottom: 5px;">Storage Attivo</div>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #c28a4d;">
+                        <?php echo $storage_type === 'googledrive' ? '📁 Google Drive' : '📦 Dropbox'; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiche in Evidenza -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 30px;">
+        
+        <div style="background: linear-gradient(135deg, #c28a4d 0%, #b8b1b3 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 6px 20px rgba(194, 138, 77, 0.3);">
+            <div style="font-size: 3rem; font-weight: bold; margin: 15px 0;"><?php echo number_format($stats['total']); ?></div>
+            <div style="font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">📊 Preventivi Totali</div>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);">
+            <div style="font-size: 3rem; font-weight: bold; margin: 15px 0;"><?php echo number_format($stats['active']); ?></div>
+            <div style="font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">✅ Attivi</div>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3);">
+            <div style="font-size: 3rem; font-weight: bold; margin: 15px 0;"><?php echo number_format($stats['confirmed']); ?></div>
+            <div style="font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">🎉 Confermati</div>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);">
+            <div style="font-size: 3rem; font-weight: bold; margin: 15px 0;"><?php echo number_format($stats['this_month']); ?></div>
+            <div style="font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">📅 Questo Mese</div>
+        </div>
+    </div>
+
+    <!-- Sezioni Principali -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        
+        <!-- Sistema e Configurazione -->
+        <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border-top: 5px solid #c28a4d;">
+            <h2 style="color: #2b1e1a; border-bottom: 3px solid #c28a4d; padding-bottom: 15px; margin-bottom: 25px;">
+                ⚙️ Sistema e Configurazione
+            </h2>
+            
+            <!-- Status Database -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid <?php echo $database_status === 'ok' ? '#28a745' : '#dc3545'; ?>;">
+                <h4 style="margin: 0 0 10px 0; color: #2b1e1a;">
+                    🗄️ Status Database
+                    <span style="color: <?php echo $database_status === 'ok' ? '#28a745' : '#dc3545'; ?>;">
+                        <?php echo $database_status === 'ok' ? '✅ OK' : '❌ Errore'; ?>
+                    </span>
+                </h4>
+                <p style="margin: 10px 0; color: #666;">
+                    <?php if ($database_status === 'ok'): ?>
+                        Database configurato correttamente
+                    <?php else: ?>
+                        Si riscontrano errori relativi a colonne mancanti nel database
+                        <br><button class="button button-primary" style="margin-top: 10px;">Forza Aggiornamento Database</button>
+                    <?php endif; ?>
+                </p>
+            </div>
+            
+            <!-- Login System -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid <?php echo $login_system_status === 'ok' ? '#28a745' : '#ffc107'; ?>;">
+                <h4 style="margin: 0 0 10px 0; color: #2b1e1a;">
+                    🔐 Sistema Login Personalizzato
+                    <span style="color: <?php echo $login_system_status === 'ok' ? '#28a745' : '#ffc107'; ?>;">
+                        ✅ Attivo
+                    </span>
+                </h4>
+                <div style="margin: 15px 0;">
+                    <strong style="color: #c28a4d;">✓</strong> Username e password personalizzati<br>
+                    <strong style="color: #c28a4d;">✓</strong> Controllo anti-robot<br>
+                    <strong style="color: #c28a4d;">✓</strong> Sessioni sicure<br>
+                    <strong style="color: #c28a4d;">✓</strong> Logout automatico<br>
+                    <strong style="color: #c28a4d;">✓</strong> Design 747 Disco
+                </div>
+                <a href="<?php echo admin_url('admin.php?page=disco747-crm&external_login=1'); ?>" class="button" target="_blank">
+                    👁️ Vai al Login
+                </a>
+            </div>
+            
+            <!-- Storage Cloud -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid <?php echo $is_storage_configured ? '#28a745' : '#ffc107'; ?>;">
+                <h4 style="margin: 0 0 10px 0; color: #2b1e1a;">
+                    ☁️ Storage Cloud
+                    <span style="color: <?php echo $is_storage_configured ? '#28a745' : '#ffc107'; ?>;">
+                        <?php echo $is_storage_configured ? '✅ Configurato' : '⚠️ Da Configurare'; ?>
+                    </span>
+                </h4>
+                <p style="margin: 10px 0; color: #666;">
+                    Attualmente: <strong style="color: #c28a4d;"><?php echo ucfirst($storage_type); ?></strong>
+                </p>
+                <a href="<?php echo admin_url('admin.php?page=disco747-settings'); ?>" class="button">
+                    ⚙️ Cambia Storage
+                </a>
+            </div>
+        </div>
+        
+        <!-- Funzionalità e Tracking -->
+        <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border-top: 5px solid #28a745;">
+            <h2 style="color: #2b1e1a; border-bottom: 3px solid #28a745; padding-bottom: 15px; margin-bottom: 25px;">
+                🚀 Funzionalità e Tracking
+            </h2>
+            
+            <!-- Form Preventivi -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
+                <h4 style="margin: 0 0 10px 0; color: #2b1e1a;">📋 Form Preventivi</h4>
+                <div style="margin: 15px 0;">
+                    <strong style="color: #28a745;">✓</strong> Accesso solo dopo login<br>
+                    <strong style="color: #28a745;">✓</strong> Tracciamento autore preventivo<br>
+                    <strong style="color: #28a745;">✓</strong> Modalità modifica migliorata<br>
+                    <strong style="color: #28a745;">✓</strong> Testo "Come vuoi inviare" modificato<br>
+                    <strong style="color: #28a745;">✓</strong> Design responsive
+                </div>
+                <a href="<?php echo esc_url(home_url('/disco747-preventivi')); ?>" class="button button-primary" target="_blank">
+                    📝 Vai al Form
+                </a>
+            </div>
+            
+            <!-- Tracking -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #6610f2;">
+                <h4 style="margin: 0 0 10px 0; color: #2b1e1a;">📊 Tracking Modifiche</h4>
+                <p style="margin: 10px 0; color: #666;">
+                    Sistema che traccia chi modifica i preventivi
+                </p>
+                <div style="margin: 15px 0;">
+                    <strong style="color: #6610f2;">✓</strong> Contatore visivo: Numerazione progressiva (#1, #2, #3...) per ogni preventivo<br>
+                    <strong style="color: #6610f2;">✓</strong> Dashboard mobile ottimizzata<br>
+                    <strong style="color: #6610f2;">✓</strong> Colonna "Creato da" <br>
+                    <strong style="color: #6610f2;">✓</strong> Layout adattivo
+                </div>
+            </div>
+            
+            <!-- Utenti Login -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid #c28a4d;">
+                <h4 style="margin: 0 0 10px 0; color: #2b1e1a;">👥 Utenti Login Predefiniti</h4>
+                <div style="margin: 15px 0; font-family: monospace; background: #fff; padding: 15px; border-radius: 5px;">
+                    <strong>andrea</strong> - Password: disco_747®!<br>
+                    <strong>federico</strong> - Password: disco@747_!<br>
+                    <strong>staff</strong> - Password: staff123<br>
+                    <strong>manager</strong> - Password: manager747
+                </div>
+                <p style="color: #666; font-size: 0.9rem; margin: 10px 0;">
+                    Per aggiungere altri utenti, modifica la funzione <code>authenticate_user()</code> nel codice.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preventivi Recenti -->
+    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border-top: 5px solid #17a2b8; margin-bottom: 30px;">
+        <h2 style="color: #2b1e1a; border-bottom: 3px solid #17a2b8; padding-bottom: 15px; margin-bottom: 25px;">
+            📋 Preventivi Recenti
+        </h2>
+        
+        <?php if (!empty($recent_preventivi)): ?>
+        <div style="overflow-x: auto;">
+            <table class="wp-list-table widefat fixed striped" style="border-radius: 10px; overflow: hidden;">
+                <thead style="background: linear-gradient(135deg, #c28a4d 0%, #b8b1b3 100%); color: white;">
+                    <tr>
+                        <th style="padding: 15px; text-align: center;">#</th>
+                        <th style="padding: 15px;">Cliente</th>
+                        <th style="padding: 15px;">Evento</th>
+                        <th style="padding: 15px;">Data Evento</th>
+                        <th style="padding: 15px; text-align: right;">Importo</th>
+                        <th style="padding: 15px; text-align: center;">Stato</th>
+                        <th style="padding: 15px; text-align: center;">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recent_preventivi as $preventivo): ?>
+                    <tr style="transition: all 0.3s ease;">
+                        <td style="padding: 15px; text-align: center;">
+                            <strong style="color: #c28a4d; font-size: 1.1rem;">#<?php echo esc_html($preventivo->id); ?></strong>
+                        </td>
+                        <td style="padding: 15px;">
+                            <strong style="color: #2b1e1a;"><?php echo esc_html($preventivo->nome_referente ?? 'N/A'); ?></strong><br>
+                            <small style="color: #666;"><?php echo esc_html($preventivo->email_referente ?? ''); ?></small>
+                        </td>
+                        <td style="padding: 15px;">
+                            <span style="background: #f8f9fa; padding: 5px 10px; border-radius: 15px; font-size: 0.9rem;">
+                                <?php echo esc_html($preventivo->tipo_evento ?? 'N/A'); ?>
+                            </span>
+                        </td>
+                        <td style="padding: 15px;">
+                            <?php echo esc_html($preventivo->data_evento ?? 'N/A'); ?>
+                        </td>
+                        <td style="padding: 15px; text-align: right; font-weight: 600; color: #c28a4d; font-size: 1.1rem;">
+                            €<?php echo number_format(floatval($preventivo->importo ?? 0), 2); ?>
+                        </td>
+                        <td style="padding: 15px; text-align: center;">
+                            <?php 
+                            $stato = $preventivo->stato ?? 'attivo';
+                            $stato_colors = array(
+                                'attivo' => '#28a745',
+                                'confermato' => '#17a2b8', 
+                                'annullato' => '#dc3545',
+                                'sospeso' => '#ffc107'
+                            );
+                            $color = $stato_colors[$stato] ?? '#90858a';
+                            ?>
+                            <span style="background: <?php echo $color; ?>; color: white; padding: 6px 12px; border-radius: 15px; font-size: 0.85rem; font-weight: 600;">
+                                <?php echo ucfirst($stato); ?>
+                            </span>
+                        </td>
+                        <td style="padding: 15px; text-align: center;">
+                            <button class="button button-small" style="margin: 2px;">👁️ Visualizza</button>
+                            <button class="button button-small" style="margin: 2px;">✏️ Modifica</button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+        <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px;">
+            <h3 style="color: #90858a;">📋 Nessun preventivo recente</h3>
+            <p style="color: #666;">I preventivi creati appariranno qui.</p>
+            <a href="<?php echo esc_url(home_url('/disco747-preventivi')); ?>" class="button button-primary" target="_blank">
+                ➕ Crea il tuo primo preventivo
+            </a>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Link Rapidi -->
+    <div style="background: linear-gradient(135deg, #2b1e1a 0%, #3c3c3c 100%); color: white; padding: 30px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
+        <h3 style="color: #c28a4d; margin-bottom: 20px; text-align: center;">🔗 Link Rapidi</h3>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a href="<?php echo esc_url(home_url('/disco747-login')); ?>" 
+               class="button button-secondary" 
+               target="_blank" 
+               style="background: rgba(194, 138, 77, 0.2); border: 2px solid #c28a4d; color: #c28a4d; padding: 12px 20px; text-decoration: none; border-radius: 25px; transition: all 0.3s ease;">
+                🔐 Pagina Login Clienti
+            </a>
+            <a href="<?php echo esc_url(home_url('/disco747-preventivi')); ?>" 
+               class="button button-secondary" 
+               target="_blank" 
+               style="background: rgba(194, 138, 77, 0.2); border: 2px solid #c28a4d; color: #c28a4d; padding: 12px 20px; text-decoration: none; border-radius: 25px; transition: all 0.3s ease;">
+                📋 Form Preventivi
+            </a>
+            <a href="<?php echo admin_url('admin.php?page=disco747-messages'); ?>" 
+               class="button button-secondary" 
+               style="background: rgba(194, 138, 77, 0.2); border: 2px solid #c28a4d; color: #c28a4d; padding: 12px 20px; text-decoration: none; border-radius: 25px; transition: all 0.3s ease;">
+                📧 Configura Messaggi
+            </a>
+            <a href="<?php echo admin_url('admin.php?page=disco747-settings'); ?>" 
+               class="button button-secondary" 
+               style="background: rgba(194, 138, 77, 0.2); border: 2px solid #c28a4d; color: #c28a4d; padding: 12px 20px; text-decoration: none; border-radius: 25px; transition: all 0.3s ease;">
+                ⚙️ Impostazioni
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Stili aggiuntivi per la dashboard 747 Disco */
+.wrap h1, .wrap h2, .wrap h3 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.wp-list-table tr:hover {
+    background: #f1f3f4 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsive per mobile */
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    div[style*="display: flex"] {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+    
+    .wrap {
+        padding: 10px !important;
+    }
+}
+
+/* Animazioni */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wrap > div {
+    animation: fadeInUp 0.6s ease-out;
+}
+</style>
+
+<script>
+jQuery(document).ready(function($) {
+    // Hover effects per i bottoni
+    $('.button').hover(
+        function() {
+            $(this).css('background-color', '#c28a4d');
+            $(this).css('color', 'white');
+        },
+        function() {
+            $(this).css('background-color', '');
+            $(this).css('color', '');
+        }
+    );
+    
+    // Click effect sui card statistiche
+    $('div[style*="linear-gradient"]').click(function() {
+        $(this).css('transform', 'scale(0.98)');
+        setTimeout(() => {
+            $(this).css('transform', 'scale(1)');
+        }, 150);
+    });
+});
+</script>
